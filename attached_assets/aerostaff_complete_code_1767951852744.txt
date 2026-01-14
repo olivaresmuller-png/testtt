@@ -1,0 +1,2886 @@
+import { useState, useEffect, useMemo, useRef } from "react";
+import { format, addDays, subDays } from "date-fns";
+import * as XLSX from "xlsx";
+import {
+  Plane,
+  Users,
+  Calendar,
+  Settings,
+  Play,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  RefreshCw,
+  AlertTriangle,
+  Wrench,
+  Shield,
+  Zap,
+  User,
+  ClipboardList,
+  Upload,
+  Download,
+  Printer,
+  ArrowRightLeft,
+  Wifi,
+  WifiOff,
+  HardDrive,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+
+type Certification = "B1" | "B2" | "B1/2" | "CAT A" | "Helper";
+type AircraftType = "A220" | "A320" | "A320neo" | "A330" | "A340" | "A350" | "B777";
+type SpecialSkill = "forklift" | "walliclean" | "fuel_tank" | "cyclean" | "cobra" | "cee_bee";
+type BorescopeAuth = AircraftType;
+type EmployeeCategory = "Licensed" | "CAT A" | "Helper";
+
+interface AircraftAuthorization {
+  aircraftType: AircraftType;
+  certification: Certification;
+}
+
+interface Employee {
+  id: string;
+  name: string;
+  employeeNumber: string;
+  category: EmployeeCategory;
+  authorizations: AircraftAuthorization[];
+  specialSkills: SpecialSkill[];
+  borescopeAuths: BorescopeAuth[];
+}
+
+type Company = "LX" | "WK";
+
+interface Aircraft {
+  id: string;
+  registration: string;
+  type: AircraftType;
+  company: Company;
+}
+
+interface DutyStatus {
+  date: string;
+  employeeId: string;
+  onDuty: boolean;
+}
+
+type Priority = "low" | "normal" | "high" | "urgent";
+
+interface WorkRequirement {
+  id: string;
+  date: string;
+  aircraftId: string;
+  b1Required: number;
+  b2Required: number;
+  helperRequired: number;
+  specialSkillsRequired: SpecialSkill[];
+  priority: Priority;
+}
+
+const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; order: number }> = {
+  urgent: { label: "Urgent", color: "bg-red-500", order: 0 },
+  high: { label: "High", color: "bg-orange-500", order: 1 },
+  normal: { label: "Normal", color: "bg-blue-500", order: 2 },
+  low: { label: "Low", color: "bg-gray-500", order: 3 },
+};
+
+interface Assignment {
+  id: string;
+  date: string;
+  aircraftId: string;
+  employeeId: string;
+  role: "B1" | "B2" | "Helper";
+  isManualOverride: boolean;
+}
+
+interface AssignmentHistory {
+  employeeId: string;
+  aircraftId: string;
+  count: number;
+  lastAssigned: string;
+}
+
+const AIRCRAFT_TYPES: AircraftType[] = ["A220", "A320", "A320neo", "A330", "A340", "A350", "B777"];
+const CERTIFICATIONS: Certification[] = ["B1", "B2", "B1/2"];
+const EMPLOYEE_CATEGORIES: EmployeeCategory[] = ["Licensed", "CAT A", "Helper"];
+const SPECIAL_SKILLS: SpecialSkill[] = ["forklift", "walliclean", "fuel_tank", "cyclean", "cobra", "cee_bee"];
+const SKILL_LABELS: Record<SpecialSkill, string> = {
+  forklift: "Forklift",
+  walliclean: "Walliclean",
+  fuel_tank: "Fuel Tank Entry",
+  cyclean: "Cyclean",
+  cobra: "Cobra",
+  cee_bee: "Cee-Bee",
+};
+
+const initialEmployees: Employee[] = [
+  { id: "e1", name: "John Martinez", employeeNumber: "JMAR", category: "Licensed", authorizations: [{ aircraftType: "A320", certification: "B1" }, { aircraftType: "A350", certification: "B1/2" }], specialSkills: ["forklift", "fuel_tank"], borescopeAuths: ["A320", "A350"] },
+  { id: "e2", name: "Sarah Chen", employeeNumber: "SCHE", category: "Licensed", authorizations: [{ aircraftType: "A320", certification: "B2" }, { aircraftType: "A330", certification: "B2" }, { aircraftType: "B777", certification: "B2" }], specialSkills: ["walliclean"], borescopeAuths: [] },
+  { id: "e3", name: "Michael Brown", employeeNumber: "MBRO", category: "Licensed", authorizations: [{ aircraftType: "A320", certification: "B1/2" }, { aircraftType: "A350", certification: "B1" }, { aircraftType: "B777", certification: "B1/2" }], specialSkills: ["cyclean", "cobra"], borescopeAuths: ["A320", "A350", "B777"] },
+  { id: "e4", name: "Emma Wilson", employeeNumber: "EWIL", category: "Licensed", authorizations: [{ aircraftType: "A220", certification: "B1" }, { aircraftType: "B777", certification: "B1" }, { aircraftType: "A340", certification: "B1/2" }], specialSkills: ["cee_bee"], borescopeAuths: ["A220"] },
+  { id: "e5", name: "David Lee", employeeNumber: "DLEE", category: "Licensed", authorizations: [{ aircraftType: "A320", certification: "B2" }, { aircraftType: "A350", certification: "B2" }, { aircraftType: "A320neo", certification: "B1/2" }], specialSkills: ["fuel_tank", "forklift"], borescopeAuths: ["A320", "A320neo"] },
+  { id: "e6", name: "Lisa Anderson", employeeNumber: "LAND", category: "Licensed", authorizations: [{ aircraftType: "A320", certification: "B1/2" }, { aircraftType: "A320neo", certification: "B1" }], specialSkills: [], borescopeAuths: [] },
+  { id: "e7", name: "James Taylor", employeeNumber: "JTAY", category: "Licensed", authorizations: [{ aircraftType: "A350", certification: "B1" }, { aircraftType: "B777", certification: "B1/2" }, { aircraftType: "A330", certification: "B1" }], specialSkills: ["cobra", "cyclean"], borescopeAuths: ["A350", "B777", "A330"] },
+  { id: "e8", name: "Anna Garcia", employeeNumber: "AGAR", category: "Licensed", authorizations: [{ aircraftType: "A320", certification: "B2" }, { aircraftType: "A350", certification: "B1/2" }, { aircraftType: "A340", certification: "B2" }], specialSkills: ["walliclean"], borescopeAuths: [] },
+  { id: "e9", name: "Carlos Rodriguez", employeeNumber: "CROD", category: "CAT A", authorizations: [], specialSkills: ["forklift"], borescopeAuths: [] },
+  { id: "e10", name: "Tom Baker", employeeNumber: "TBAK", category: "Helper", authorizations: [], specialSkills: ["forklift"], borescopeAuths: [] },
+];
+
+const COMPANIES: Company[] = ["LX", "WK"];
+
+const initialAircraft: Aircraft[] = [
+  { id: "a1", registration: "CS-TJE", type: "A320", company: "LX" },
+  { id: "a2", registration: "CS-TXA", type: "A320neo", company: "LX" },
+  { id: "a3", registration: "CS-TOA", type: "A330", company: "LX" },
+  { id: "a4", registration: "CS-TQZ", type: "A340", company: "LX" },
+  { id: "a5", registration: "CS-TJF", type: "A350", company: "LX" },
+  { id: "a6", registration: "9H-WKA", type: "A320", company: "WK" },
+  { id: "a7", registration: "9H-WKB", type: "A320neo", company: "WK" },
+  { id: "a8", registration: "9H-WKC", type: "B777", company: "WK" },
+];
+
+export default function Home() {
+  const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const loadFromStorage = <T,>(key: string, fallback: T): T => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const [employees, setEmployees] = useState<Employee[]>(() => loadFromStorage("aerostaff_employees", initialEmployees));
+  const [aircraft, setAircraft] = useState<Aircraft[]>(() => loadFromStorage("aerostaff_aircraft", initialAircraft));
+  const [dutyStatuses, setDutyStatuses] = useState<DutyStatus[]>(() => loadFromStorage("aerostaff_duty", []));
+  const [workRequirements, setWorkRequirements] = useState<WorkRequirement[]>(() => loadFromStorage("aerostaff_requirements", []));
+  const [assignments, setAssignments] = useState<Assignment[]>(() => loadFromStorage("aerostaff_assignments", []));
+  const [assignmentHistory, setAssignmentHistory] = useState<AssignmentHistory[]>(() => loadFromStorage("aerostaff_history", []));
+  const [activeTab, setActiveTab] = useState("assignments");
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => { localStorage.setItem("aerostaff_employees", JSON.stringify(employees)); }, [employees]);
+  useEffect(() => { localStorage.setItem("aerostaff_aircraft", JSON.stringify(aircraft)); }, [aircraft]);
+  useEffect(() => { localStorage.setItem("aerostaff_duty", JSON.stringify(dutyStatuses)); }, [dutyStatuses]);
+  useEffect(() => { localStorage.setItem("aerostaff_requirements", JSON.stringify(workRequirements)); }, [workRequirements]);
+  useEffect(() => { localStorage.setItem("aerostaff_assignments", JSON.stringify(assignments)); }, [assignments]);
+  useEffect(() => { localStorage.setItem("aerostaff_history", JSON.stringify(assignmentHistory)); }, [assignmentHistory]);
+
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [editingAircraft, setEditingAircraft] = useState<Aircraft | null>(null);
+  const [showEmployeeDialog, setShowEmployeeDialog] = useState(false);
+  const [showAircraftDialog, setShowAircraftDialog] = useState(false);
+
+  const dateStr = format(selectedDate, "yyyy-MM-dd");
+
+  useEffect(() => {
+    const existingDuty = dutyStatuses.filter((d) => d.date === dateStr);
+    if (existingDuty.length === 0) {
+      const newDutyStatuses = employees.map((emp) => ({
+        date: dateStr,
+        employeeId: emp.id,
+        onDuty: true,
+      }));
+      setDutyStatuses((prev) => [...prev, ...newDutyStatuses]);
+    }
+  }, [dateStr, employees]);
+
+  const [registrationInput, setRegistrationInput] = useState("");
+
+  const addAircraftByRegistration = () => {
+    const reg = registrationInput.trim().toUpperCase();
+    if (!reg) {
+      toast({
+        title: "Enter Registration",
+        description: "Please enter an aircraft registration.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Support partial matching - search for exact match first, then partial
+    let matchedAircraft = aircraft.find(
+      (a) => a.registration.toUpperCase() === reg
+    );
+    
+    // If no exact match, try partial match (e.g., "JCC" matches "HB-JCC")
+    if (!matchedAircraft) {
+      matchedAircraft = aircraft.find(
+        (a) => a.registration.toUpperCase().includes(reg)
+      );
+    }
+
+    if (!matchedAircraft) {
+      toast({
+        title: "Aircraft Not Found",
+        description: `Registration "${reg}" not found in fleet. Add it to the Aircraft Fleet first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const alreadyExists = workRequirements.find(
+      (r) => r.date === dateStr && r.aircraftId === matchedAircraft.id
+    );
+
+    if (alreadyExists) {
+      toast({
+        title: "Already Added",
+        description: `${reg} is already in today's work requirements.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newReq: WorkRequirement = {
+      id: `wr-${matchedAircraft.id}-${dateStr}-${Date.now()}`,
+      date: dateStr,
+      aircraftId: matchedAircraft.id,
+      b1Required: 1,
+      b2Required: 1,
+      helperRequired: 0,
+      specialSkillsRequired: [],
+      priority: "normal" as Priority,
+    };
+
+    setWorkRequirements((prev) => [...prev, newReq]);
+    setRegistrationInput("");
+    toast({
+      title: "Aircraft Added",
+      description: `${reg} (${matchedAircraft.type}) added to work requirements.`,
+    });
+  };
+
+  const removeWorkRequirement = (reqId: string) => {
+    setWorkRequirements((prev) => prev.filter((r) => r.id !== reqId));
+    const req = workRequirements.find((r) => r.id === reqId);
+    if (req) {
+      setAssignments((prev) =>
+        prev.filter((a) => !(a.aircraftId === req.aircraftId && a.date === dateStr))
+      );
+    }
+  };
+
+  const todaysDuty = useMemo(
+    () => dutyStatuses.filter((d) => d.date === dateStr),
+    [dutyStatuses, dateStr]
+  );
+
+  const todaysRequirements = useMemo(
+    () => workRequirements.filter((r) => r.date === dateStr),
+    [workRequirements, dateStr]
+  );
+
+  const todaysAssignments = useMemo(
+    () => assignments.filter((a) => a.date === dateStr),
+    [assignments, dateStr]
+  );
+
+  const onDutyEmployees = useMemo(
+    () =>
+      employees.filter((emp) => {
+        const status = todaysDuty.find((d) => d.employeeId === emp.id);
+        return status?.onDuty ?? true;
+      }),
+    [employees, todaysDuty]
+  );
+
+  const toggleDutyStatus = (employeeId: string) => {
+    setDutyStatuses((prev) =>
+      prev.map((d) =>
+        d.date === dateStr && d.employeeId === employeeId
+          ? { ...d, onDuty: !d.onDuty }
+          : d
+      )
+    );
+  };
+
+  const updateWorkRequirement = (
+    aircraftId: string,
+    field: "b1Required" | "b2Required" | "helperRequired",
+    value: number
+  ) => {
+    setWorkRequirements((prev) =>
+      prev.map((r) =>
+        r.date === dateStr && r.aircraftId === aircraftId
+          ? { ...r, [field]: Math.max(0, value) }
+          : r
+      )
+    );
+  };
+
+  const toggleRequiredSkill = (reqId: string, skill: SpecialSkill) => {
+    setWorkRequirements((prev) =>
+      prev.map((r) => {
+        if (r.id !== reqId) return r;
+        const currentSkills = r.specialSkillsRequired || [];
+        const hasSkill = currentSkills.includes(skill);
+        return {
+          ...r,
+          specialSkillsRequired: hasSkill
+            ? currentSkills.filter((s) => s !== skill)
+            : [...currentSkills, skill],
+        };
+      })
+    );
+  };
+
+  const updatePriority = (reqId: string, priority: Priority) => {
+    setWorkRequirements((prev) =>
+      prev.map((r) => (r.id === reqId ? { ...r, priority } : r))
+    );
+  };
+
+  const canAssign = (employee: Employee, ac: Aircraft, role: "B1" | "B2"): boolean => {
+    const auth = employee.authorizations.find((a) => a.aircraftType === ac.type);
+    if (!auth) return false;
+    if (role === "B1" && auth.certification !== "B1" && auth.certification !== "B1/2")
+      return false;
+    if (role === "B2" && auth.certification !== "B2" && auth.certification !== "B1/2")
+      return false;
+    return true;
+  };
+
+  const getRotationScore = (employeeId: string, aircraftId: string): number => {
+    const history = assignmentHistory.find(
+      (h) => h.employeeId === employeeId && h.aircraftId === aircraftId
+    );
+    if (!history) return 0;
+    const daysSinceLastAssignment = Math.floor(
+      (new Date().getTime() - new Date(history.lastAssigned).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return history.count - daysSinceLastAssignment * 0.5;
+  };
+
+  const runAutoAssignment = () => {
+    const newAssignments: Assignment[] = [];
+    const employeeAssignmentCount: Record<string, number> = {};
+
+    // Sort requirements by priority (urgent first, then high, normal, low)
+    const sortedRequirements = [...todaysRequirements].sort((a, b) => {
+      const aPriority = PRIORITY_CONFIG[a.priority || "normal"].order;
+      const bPriority = PRIORITY_CONFIG[b.priority || "normal"].order;
+      return aPriority - bPriority;
+    });
+
+    for (const req of sortedRequirements) {
+      const ac = aircraft.find((a) => a.id === req.aircraftId);
+      if (!ac) continue;
+
+      const existingManual = todaysAssignments.filter(
+        (a) => a.aircraftId === req.aircraftId && a.isManualOverride
+      );
+      existingManual.forEach((a) => {
+        employeeAssignmentCount[a.employeeId] = (employeeAssignmentCount[a.employeeId] || 0) + 1;
+        newAssignments.push(a);
+      });
+
+      const b1Manual = existingManual.filter((a) => a.role === "B1").length;
+      const b2Manual = existingManual.filter((a) => a.role === "B2").length;
+
+      const b1Needed = Math.max(0, req.b1Required - b1Manual);
+      const b2Needed = Math.max(0, req.b2Required - b2Manual);
+
+      const isAssignedToThisAircraft = (empId: string) =>
+        newAssignments.some((a) => a.employeeId === empId && a.aircraftId === ac.id);
+
+      const requiredSkills = req.specialSkillsRequired || [];
+      
+      // Count matching skills for prioritization
+      const countMatchingSkills = (emp: Employee) => 
+        requiredSkills.filter((skill) => emp.specialSkills.includes(skill)).length;
+
+      const eligibleB1 = onDutyEmployees
+        .filter((emp) => !isAssignedToThisAircraft(emp.id) && canAssign(emp, ac, "B1"))
+        .sort((a, b) => {
+          // First prioritize employees with required skills
+          const aSkills = countMatchingSkills(a);
+          const bSkills = countMatchingSkills(b);
+          if (aSkills !== bSkills) return bSkills - aSkills; // More skills = higher priority
+          
+          const aCount = employeeAssignmentCount[a.id] || 0;
+          const bCount = employeeAssignmentCount[b.id] || 0;
+          if (aCount !== bCount) return aCount - bCount;
+          return getRotationScore(a.id, ac.id) - getRotationScore(b.id, ac.id);
+        });
+
+      for (let i = 0; i < b1Needed && i < eligibleB1.length; i++) {
+        const emp = eligibleB1[i];
+        newAssignments.push({
+          id: `assign-${emp.id}-${ac.id}-${dateStr}-B1`,
+          date: dateStr,
+          aircraftId: ac.id,
+          employeeId: emp.id,
+          role: "B1",
+          isManualOverride: false,
+        });
+        employeeAssignmentCount[emp.id] = (employeeAssignmentCount[emp.id] || 0) + 1;
+      }
+
+      const eligibleB2 = onDutyEmployees
+        .filter((emp) => !isAssignedToThisAircraft(emp.id) && canAssign(emp, ac, "B2"))
+        .sort((a, b) => {
+          // First prioritize employees with required skills
+          const aSkills = countMatchingSkills(a);
+          const bSkills = countMatchingSkills(b);
+          if (aSkills !== bSkills) return bSkills - aSkills;
+          
+          const aCount = employeeAssignmentCount[a.id] || 0;
+          const bCount = employeeAssignmentCount[b.id] || 0;
+          if (aCount !== bCount) return aCount - bCount;
+          return getRotationScore(a.id, ac.id) - getRotationScore(b.id, ac.id);
+        });
+
+      for (let i = 0; i < b2Needed && i < eligibleB2.length; i++) {
+        const emp = eligibleB2[i];
+        newAssignments.push({
+          id: `assign-${emp.id}-${ac.id}-${dateStr}-B2`,
+          date: dateStr,
+          aircraftId: ac.id,
+          employeeId: emp.id,
+          role: "B2",
+          isManualOverride: false,
+        });
+        employeeAssignmentCount[emp.id] = (employeeAssignmentCount[emp.id] || 0) + 1;
+      }
+    }
+
+    setAssignments((prev) => [
+      ...prev.filter((a) => a.date !== dateStr),
+      ...newAssignments,
+    ]);
+
+    const newHistory = [...assignmentHistory];
+    newAssignments.forEach((a) => {
+      const existing = newHistory.find(
+        (h) => h.employeeId === a.employeeId && h.aircraftId === a.aircraftId
+      );
+      if (existing) {
+        existing.count++;
+        existing.lastAssigned = dateStr;
+      } else {
+        newHistory.push({
+          employeeId: a.employeeId,
+          aircraftId: a.aircraftId,
+          count: 1,
+          lastAssigned: dateStr,
+        });
+      }
+    });
+    setAssignmentHistory(newHistory);
+
+    const multiAssigned = Object.values(employeeAssignmentCount).filter((c) => c > 1).length;
+    toast({
+      title: "Auto-Assignment Complete",
+      description: `Assigned ${newAssignments.length} positions to aircraft. ${multiAssigned > 0 ? `${multiAssigned} employee(s) assigned to multiple aircraft.` : ""}`,
+    });
+  };
+
+  const addManualAssignment = (
+    aircraftId: string,
+    employeeId: string,
+    role: "B1" | "B2"
+  ) => {
+    const existing = todaysAssignments.find(
+      (a) => a.aircraftId === aircraftId && a.employeeId === employeeId && a.role === role
+    );
+    if (existing) {
+      toast({
+        title: "Already Assigned",
+        description: "This employee is already assigned to this aircraft in this role today.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const emp = employees.find((e) => e.id === employeeId);
+    const ac = aircraft.find((a) => a.id === aircraftId);
+    if (!emp || !ac || !canAssign(emp, ac, role)) {
+      toast({
+        title: "Invalid Assignment",
+        description: "Employee does not have the required certification or aircraft authorization.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newAssignment: Assignment = {
+      id: `assign-${employeeId}-${aircraftId}-${dateStr}-${role}-manual`,
+      date: dateStr,
+      aircraftId,
+      employeeId,
+      role,
+      isManualOverride: true,
+    };
+
+    setAssignments((prev) => [...prev, newAssignment]);
+
+    toast({
+      title: "Manual Assignment Added",
+      description: `${emp.name} assigned to ${ac.registration} as ${role}`,
+    });
+  };
+
+  const removeAssignment = (assignmentId: string) => {
+    setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+  };
+
+  const saveEmployee = (employee: Employee) => {
+    if (editingEmployee) {
+      setEmployees((prev) =>
+        prev.map((e) => (e.id === employee.id ? employee : e))
+      );
+    } else {
+      setEmployees((prev) => [...prev, { ...employee, id: `e${Date.now()}` }]);
+    }
+    setShowEmployeeDialog(false);
+    setEditingEmployee(null);
+  };
+
+  const deleteEmployee = (id: string) => {
+    setEmployees((prev) => prev.filter((e) => e.id !== id));
+    setAssignments((prev) => prev.filter((a) => a.employeeId !== id));
+    setDutyStatuses((prev) => prev.filter((d) => d.employeeId !== id));
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dutyFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
+
+        const newEmployees: Employee[] = jsonData.map((row, index) => {
+          const categoryValue = (row["Category"] || row["category"] || "") as string;
+          let category: EmployeeCategory = "Licensed";
+          if (categoryValue.toLowerCase() === "cat a" || categoryValue.toLowerCase() === "cata") {
+            category = "CAT A";
+          } else if (categoryValue.toLowerCase() === "helper" || categoryValue.toLowerCase() === "none") {
+            category = "Helper";
+          }
+
+          const authorizations: AircraftAuthorization[] = [];
+          
+          if (category === "Licensed") {
+            AIRCRAFT_TYPES.forEach((type) => {
+              const certValue = row[type] as string | undefined;
+              if (certValue && ["B1", "B2", "B1/2"].includes(certValue.toUpperCase())) {
+                authorizations.push({
+                  aircraftType: type,
+                  certification: certValue.toUpperCase() as Certification,
+                });
+              }
+            });
+          }
+
+          const skillsStr = (row["SpecialSkills"] || row["Special Skills"] || row["skills"] || "") as string;
+          const specialSkills: SpecialSkill[] = skillsStr
+            .split(",")
+            .map((s) => s.trim().toLowerCase().replace(/ /g, "_"))
+            .filter((s) => SPECIAL_SKILLS.includes(s as SpecialSkill)) as SpecialSkill[];
+
+          const borescopeStr = (row["Borescope"] || row["borescope"] || row["BorescopeAuths"] || "") as string;
+          const borescopeAuths: BorescopeAuth[] = borescopeStr
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => AIRCRAFT_TYPES.includes(s as AircraftType)) as BorescopeAuth[];
+
+          return {
+            id: `e${Date.now()}-${index}`,
+            name: (row["Name"] || row["name"] || row["FullName"] || row["Full Name"] || "") as string,
+            employeeNumber: (row["EmployeeNumber"] || row["Employee Number"] || row["ID"] || row["EmpID"] || `EMP${index + 1}`) as string,
+            category,
+            authorizations,
+            specialSkills,
+            borescopeAuths: category === "Licensed" ? borescopeAuths : [],
+          };
+        }).filter((emp) => emp.name && (emp.authorizations.length > 0 || emp.category !== "Licensed"));
+
+        if (newEmployees.length > 0) {
+          setEmployees((prev) => [...prev, ...newEmployees]);
+          toast({
+            title: "Import Successful",
+            description: `Imported ${newEmployees.length} employees from Excel file.`,
+          });
+        } else {
+          toast({
+            title: "No Valid Data",
+            description: "No valid employee data found in the file. Check the format.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Import Failed",
+          description: "Could not parse the Excel file. Please check the format.",
+          variant: "destructive",
+        });
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const downloadExcelTemplate = () => {
+    const templateData = [
+      {
+        Name: "John Smith",
+        EmployeeNumber: "JSMI",
+        Category: "Licensed",
+        A220: "",
+        A320: "B1",
+        A320neo: "",
+        A330: "",
+        A340: "",
+        A350: "B1/2",
+        B777: "B2",
+        Borescope: "A320, A350",
+        SpecialSkills: "forklift, fuel_tank",
+      },
+      {
+        Name: "Jane Doe",
+        EmployeeNumber: "JDOE",
+        Category: "CAT A",
+        A220: "",
+        A320: "",
+        A320neo: "",
+        A330: "",
+        A340: "",
+        A350: "",
+        B777: "",
+        Borescope: "",
+        SpecialSkills: "forklift",
+      },
+      {
+        Name: "Bob Helper",
+        EmployeeNumber: "BHEL",
+        Category: "Helper",
+        A220: "",
+        A320: "",
+        A320neo: "",
+        A330: "",
+        A340: "",
+        A350: "",
+        B777: "",
+        Borescope: "",
+        SpecialSkills: "",
+      },
+    ];
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Employees");
+    XLSX.writeFile(wb, "employee_template.xlsx");
+  };
+
+  const handleDutyExcelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
+
+        let updated = 0;
+        const newDutyStatuses = [...dutyStatuses.filter((d) => d.date !== dateStr)];
+
+        jsonData.forEach((row) => {
+          const name = (row["Name"] || row["name"] || row["FullName"] || row["Full Name"] || "") as string;
+          const empNumber = (row["EmployeeNumber"] || row["Employee Number"] || row["ID"] || row["EmpID"] || "") as string;
+          const onDutyValue = row["OnDuty"] || row["On Duty"] || row["onDuty"] || row["Duty"] || row["duty"];
+          
+          const matchedEmployee = employees.find(
+            (emp) =>
+              emp.name.toLowerCase() === name.toLowerCase() ||
+              emp.employeeNumber.toLowerCase() === empNumber.toString().toLowerCase()
+          );
+
+          if (matchedEmployee) {
+            const isOnDuty = 
+              onDutyValue === true || 
+              onDutyValue === 1 || 
+              onDutyValue === "1" ||
+              (typeof onDutyValue === "string" && ["yes", "y", "true", "on", "x"].includes(onDutyValue.toLowerCase()));
+
+            newDutyStatuses.push({
+              date: dateStr,
+              employeeId: matchedEmployee.id,
+              onDuty: isOnDuty,
+            });
+            updated++;
+          }
+        });
+
+        employees.forEach((emp) => {
+          if (!newDutyStatuses.find((d) => d.date === dateStr && d.employeeId === emp.id)) {
+            newDutyStatuses.push({
+              date: dateStr,
+              employeeId: emp.id,
+              onDuty: false,
+            });
+          }
+        });
+
+        setDutyStatuses(newDutyStatuses);
+
+        if (updated > 0) {
+          toast({
+            title: "Duty Status Updated",
+            description: `Updated duty status for ${updated} employees.`,
+          });
+        } else {
+          toast({
+            title: "No Matches Found",
+            description: "Could not match any employees. Check names or employee numbers.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Import Failed",
+          description: "Could not parse the Excel file. Please check the format.",
+          variant: "destructive",
+        });
+      }
+      if (dutyFileInputRef.current) {
+        dutyFileInputRef.current.value = "";
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const downloadDutyTemplate = () => {
+    const templateData = employees.map((emp) => ({
+      Name: emp.name,
+      EmployeeNumber: emp.employeeNumber,
+      OnDuty: "yes",
+    }));
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "DutyStatus");
+    XLSX.writeFile(wb, `duty_status_${format(selectedDate, "yyyy-MM-dd")}.xlsx`);
+  };
+
+  const setAllDuty = (onDuty: boolean) => {
+    const newStatuses = employees.map((emp) => ({
+      date: dateStr,
+      employeeId: emp.id,
+      onDuty,
+    }));
+    setDutyStatuses((prev) => [
+      ...prev.filter((d) => d.date !== dateStr),
+      ...newStatuses,
+    ]);
+  };
+
+  const saveAircraft = (ac: Aircraft) => {
+    if (editingAircraft) {
+      setAircraft((prev) => prev.map((a) => (a.id === ac.id ? ac : a)));
+    } else {
+      setAircraft((prev) => [...prev, { ...ac, id: `a${Date.now()}` }]);
+    }
+    setShowAircraftDialog(false);
+    setEditingAircraft(null);
+  };
+
+  const deleteAircraft = (id: string) => {
+    setAircraft((prev) => prev.filter((a) => a.id !== id));
+    setAssignments((prev) => prev.filter((a) => a.aircraftId !== id));
+    setWorkRequirements((prev) => prev.filter((r) => r.aircraftId !== id));
+  };
+
+  const getAssignmentStats = () => {
+    let totalRequired = 0;
+    let totalAssigned = 0;
+    let unfilled = 0;
+
+    todaysRequirements.forEach((req) => {
+      const reqTotal = req.b1Required + req.b2Required + (req.helperRequired || 0);
+      const assigned = todaysAssignments.filter((a) => a.aircraftId === req.aircraftId).length;
+      totalRequired += reqTotal;
+      totalAssigned += assigned;
+      if (assigned < reqTotal) unfilled += reqTotal - assigned;
+    });
+
+    return { totalRequired, totalAssigned, unfilled, onDuty: onDutyEmployees.length };
+  };
+
+  const stats = getAssignmentStats();
+
+  const getEmployeeAssignmentCount = (employeeId: string): number => {
+    return todaysAssignments.filter((a) => a.employeeId === employeeId).length;
+  };
+
+  const printAssignments = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Daily Assignments - ${format(selectedDate, "MMMM d, yyyy")}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { font-size: 24px; margin-bottom: 5px; }
+          h2 { font-size: 14px; color: #666; margin-bottom: 20px; }
+          .aircraft { border: 1px solid #ddd; margin-bottom: 15px; padding: 15px; border-radius: 8px; }
+          .aircraft-header { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+          .aircraft-type { color: #666; font-size: 14px; }
+          .role-section { margin: 10px 0; }
+          .role-title { font-weight: bold; font-size: 12px; color: #444; margin-bottom: 5px; }
+          .employee { padding: 4px 8px; background: #f5f5f5; margin: 3px 0; border-radius: 4px; font-size: 13px; }
+          .emp-code { font-family: monospace; color: #666; }
+          .summary { margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <h1>AeroStaff - Daily Assignments</h1>
+        <h2>${format(selectedDate, "EEEE, MMMM d, yyyy")}</h2>
+        ${todaysRequirements.map((req) => {
+          const ac = aircraft.find((a) => a.id === req.aircraftId);
+          if (!ac) return "";
+          const acAssignments = todaysAssignments.filter((a) => a.aircraftId === req.aircraftId);
+          const b1 = acAssignments.filter((a) => a.role === "B1");
+          const b2 = acAssignments.filter((a) => a.role === "B2");
+          const helpers = acAssignments.filter((a) => a.role === "Helper");
+          return `
+            <div class="aircraft">
+              <div class="aircraft-header">${ac.registration} <span class="aircraft-type">(${ac.type})</span></div>
+              <div class="role-section">
+                <div class="role-title">B1 Mechanics (${b1.length}/${req.b1Required})</div>
+                ${b1.map((a) => {
+                  const emp = employees.find((e) => e.id === a.employeeId);
+                  return `<div class="employee">${emp?.name} <span class="emp-code">(${emp?.employeeNumber})</span></div>`;
+                }).join("")}
+              </div>
+              <div class="role-section">
+                <div class="role-title">B2 Avionics (${b2.length}/${req.b2Required})</div>
+                ${b2.map((a) => {
+                  const emp = employees.find((e) => e.id === a.employeeId);
+                  return `<div class="employee">${emp?.name} <span class="emp-code">(${emp?.employeeNumber})</span></div>`;
+                }).join("")}
+              </div>
+              ${(req.helperRequired || 0) > 0 ? `
+                <div class="role-section">
+                  <div class="role-title">CAT A / Helpers (${helpers.length}/${req.helperRequired})</div>
+                  ${helpers.map((a) => {
+                    const emp = employees.find((e) => e.id === a.employeeId);
+                    return `<div class="employee">${emp?.name} <span class="emp-code">(${emp?.employeeNumber})</span></div>`;
+                  }).join("")}
+                </div>
+              ` : ""}
+            </div>
+          `;
+        }).join("")}
+        <div class="summary">
+          <strong>Summary:</strong> ${stats.totalAssigned}/${stats.totalRequired} positions filled | ${stats.onDuty} employees on duty
+        </div>
+      </body>
+      </html>
+    `;
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const [showQuickReassign, setShowQuickReassign] = useState(false);
+  const [reassignEmployee, setReassignEmployee] = useState<string>("");
+  const [reassignToAircraft, setReassignToAircraft] = useState<string>("");
+  const [reassignRole, setReassignRole] = useState<"B1" | "B2" | "Helper">("B1");
+
+  const getAvailableForReassign = () => {
+    return todaysAssignments
+      .map((a) => {
+        const emp = employees.find((e) => e.id === a.employeeId);
+        const ac = aircraft.find((ac) => ac.id === a.aircraftId);
+        return { assignment: a, emp, ac };
+      })
+      .filter((item) => item.emp && item.ac);
+  };
+
+  const getUnfilledAircraft = (role: "B1" | "B2" | "Helper") => {
+    return todaysRequirements.filter((req) => {
+      const acAssignments = todaysAssignments.filter((a) => a.aircraftId === req.aircraftId);
+      if (role === "B1") {
+        return acAssignments.filter((a) => a.role === "B1").length < req.b1Required;
+      } else if (role === "B2") {
+        return acAssignments.filter((a) => a.role === "B2").length < req.b2Required;
+      } else {
+        return acAssignments.filter((a) => a.role === "Helper").length < (req.helperRequired || 0);
+      }
+    });
+  };
+
+  const executeQuickReassign = () => {
+    if (!reassignEmployee || !reassignToAircraft) return;
+    
+    const existingAssignment = todaysAssignments.find((a) => a.employeeId === reassignEmployee);
+    if (existingAssignment) {
+      setAssignments((prev) => prev.filter((a) => a.id !== existingAssignment.id));
+    }
+
+    const emp = employees.find((e) => e.id === reassignEmployee);
+    const targetAc = aircraft.find((a) => a.id === reassignToAircraft);
+    
+    const newAssignment: Assignment = {
+      id: `assign-${reassignEmployee}-${reassignToAircraft}-${dateStr}-${reassignRole}-quick`,
+      date: dateStr,
+      aircraftId: reassignToAircraft,
+      employeeId: reassignEmployee,
+      role: reassignRole,
+      isManualOverride: true,
+    };
+
+    setAssignments((prev) => [...prev, newAssignment]);
+    setShowQuickReassign(false);
+    setReassignEmployee("");
+    setReassignToAircraft("");
+    
+    toast({
+      title: "Quick Reassignment Complete",
+      description: `${emp?.name} moved to ${targetAc?.registration} as ${reassignRole}`,
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-background grid-pattern">
+      <header className="border-b border-border glass sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Plane className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-display font-bold text-foreground" data-testid="text-app-title">
+                  AeroStaff
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className={`flex items-center gap-1 text-xs ${isOnline ? 'text-accent' : 'text-amber-500'}`} data-testid="status-connection">
+                    {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                    <span>{isOnline ? 'Online' : 'Offline'}</span>
+                  </div>
+                  <span className="text-muted-foreground">•</span>
+                  <div className="flex items-center gap-1 text-xs text-accent" data-testid="status-storage">
+                    <HardDrive className="w-3 h-3" />
+                    <span>Local Storage</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Aircraft Maintenance Staffing
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 glass px-4 py-2 rounded-lg">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setSelectedDate(subDays(selectedDate, 1))}
+                  data-testid="button-prev-day"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="font-mono text-sm font-medium" data-testid="text-selected-date">
+                    {format(selectedDate, "EEE, MMM d, yyyy")}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+                  data-testid="button-next-day"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Button
+                onClick={runAutoAssignment}
+                className="glow-primary"
+                data-testid="button-auto-assign"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Auto-Assign
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          <Card className="glass border-border" data-testid="card-stat-on-duty">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">On Duty</p>
+                  <p className="text-3xl font-display font-bold text-foreground">
+                    {stats.onDuty}
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-border" data-testid="card-stat-required">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Positions Required</p>
+                  <p className="text-3xl font-display font-bold text-foreground">
+                    {stats.totalRequired}
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                  <ClipboardList className="w-6 h-6 text-accent" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-border" data-testid="card-stat-assigned">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Assigned</p>
+                  <p className="text-3xl font-display font-bold text-accent">
+                    {stats.totalAssigned}
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                  <Check className="w-6 h-6 text-accent" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-border" data-testid="card-stat-unfilled">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Unfilled</p>
+                  <p className={`text-3xl font-display font-bold ${stats.unfilled > 0 ? "text-destructive" : "text-accent"}`}>
+                    {stats.unfilled}
+                  </p>
+                </div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${stats.unfilled > 0 ? "bg-destructive/20" : "bg-accent/20"}`}>
+                  <AlertTriangle className={`w-6 h-6 ${stats.unfilled > 0 ? "text-destructive" : "text-accent"}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {stats.unfilled > 0 && (
+          <Card className="glass border-destructive/50 bg-destructive/5" data-testid="card-unfilled-details">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-destructive flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Unfilled Positions - Action Required
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {todaysRequirements.map((req) => {
+                  const ac = aircraft.find((a) => a.id === req.aircraftId);
+                  if (!ac) return null;
+                  const acAssignments = todaysAssignments.filter((a) => a.aircraftId === req.aircraftId);
+                  const b1Missing = Math.max(0, req.b1Required - acAssignments.filter((a) => a.role === "B1").length);
+                  const b2Missing = Math.max(0, req.b2Required - acAssignments.filter((a) => a.role === "B2").length);
+                  const helperMissing = Math.max(0, (req.helperRequired || 0) - acAssignments.filter((a) => a.role === "Helper").length);
+                  
+                  if (b1Missing === 0 && b2Missing === 0 && helperMissing === 0) return null;
+                  
+                  const priorityConfig = PRIORITY_CONFIG[req.priority || "normal"];
+                  
+                  return (
+                    <div key={req.id} className="flex items-center justify-between p-2 rounded bg-card/50 border border-border">
+                      <div className="flex items-center gap-2">
+                        <Badge className={`text-xs ${priorityConfig.color} text-white`}>
+                          {priorityConfig.label}
+                        </Badge>
+                        <span className="font-mono font-medium">{ac.registration}</span>
+                        <span className="text-muted-foreground text-sm">({ac.type})</span>
+                      </div>
+                      <div className="flex gap-2">
+                        {b1Missing > 0 && (
+                          <Badge variant="destructive" className="text-xs">
+                            B1: {b1Missing} missing
+                          </Badge>
+                        )}
+                        {b2Missing > 0 && (
+                          <Badge variant="destructive" className="text-xs">
+                            B2: {b2Missing} missing
+                          </Badge>
+                        )}
+                        {helperMissing > 0 && (
+                          <Badge variant="destructive" className="text-xs">
+                            Helper: {helperMissing} missing
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="glass border border-border p-1">
+            <TabsTrigger value="assignments" data-testid="tab-assignments">
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Assignments
+            </TabsTrigger>
+            <TabsTrigger value="duty" data-testid="tab-duty">
+              <Calendar className="h-4 w-4 mr-2" />
+              Duty Status
+            </TabsTrigger>
+            <TabsTrigger value="requirements" data-testid="tab-requirements">
+              <Wrench className="h-4 w-4 mr-2" />
+              Work Requirements
+            </TabsTrigger>
+            <TabsTrigger value="employees" data-testid="tab-employees">
+              <Users className="h-4 w-4 mr-2" />
+              Employees
+            </TabsTrigger>
+            <TabsTrigger value="aircraft" data-testid="tab-aircraft">
+              <Plane className="h-4 w-4 mr-2" />
+              Aircraft
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="assignments" className="space-y-6">
+            <Card className="glass border-border">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display">
+                  Daily Assignments - {format(selectedDate, "MMMM d, yyyy")}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Dialog open={showQuickReassign} onOpenChange={setShowQuickReassign}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid="button-quick-reassign"
+                      >
+                        <ArrowRightLeft className="h-4 w-4 mr-2" />
+                        Quick Reassign
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="glass border-border max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="font-display">Quick Reassign</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <p className="text-sm text-muted-foreground">
+                          Move an employee who finished early to another aircraft.
+                        </p>
+                        <div className="space-y-2">
+                          <Label>Employee to reassign</Label>
+                          <Select value={reassignEmployee} onValueChange={setReassignEmployee}>
+                            <SelectTrigger data-testid="select-reassign-employee">
+                              <SelectValue placeholder="Select employee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getAvailableForReassign().map(({ assignment, emp, ac }) => (
+                                <SelectItem key={assignment.id} value={emp!.id}>
+                                  {emp?.name} ({emp?.employeeNumber}) - {ac?.registration} [{assignment.role}]
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>New role</Label>
+                          <Select value={reassignRole} onValueChange={(v) => setReassignRole(v as "B1" | "B2" | "Helper")}>
+                            <SelectTrigger data-testid="select-reassign-role">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="B1">B1</SelectItem>
+                              <SelectItem value="B2">B2</SelectItem>
+                              <SelectItem value="Helper">Helper</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Move to aircraft (unfilled positions)</Label>
+                          <Select value={reassignToAircraft} onValueChange={setReassignToAircraft}>
+                            <SelectTrigger data-testid="select-reassign-aircraft">
+                              <SelectValue placeholder="Select aircraft" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getUnfilledAircraft(reassignRole).map((req) => {
+                                const ac = aircraft.find((a) => a.id === req.aircraftId);
+                                return (
+                                  <SelectItem key={req.id} value={req.aircraftId}>
+                                    {ac?.registration} ({ac?.type})
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button 
+                          onClick={executeQuickReassign}
+                          disabled={!reassignEmployee || !reassignToAircraft}
+                          data-testid="button-execute-reassign"
+                        >
+                          Reassign
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={printAssignments}
+                    data-testid="button-print-assignments"
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print / PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={runAutoAssignment}
+                    data-testid="button-refresh-assignments"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {todaysRequirements.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No work requirements for this day. Add aircraft and requirements first.
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {[...todaysRequirements]
+                    .sort((a, b) => PRIORITY_CONFIG[a.priority || "normal"].order - PRIORITY_CONFIG[b.priority || "normal"].order)
+                    .map((req) => {
+                      const ac = aircraft.find((a) => a.id === req.aircraftId);
+                      if (!ac) return null;
+                      const acAssignments = todaysAssignments.filter(
+                        (a) => a.aircraftId === req.aircraftId
+                      );
+                      const b1Assigned = acAssignments.filter((a) => a.role === "B1");
+                      const b2Assigned = acAssignments.filter((a) => a.role === "B2");
+                      const helperAssigned = acAssignments.filter((a) => a.role === "Helper");
+                      const helperReq = req.helperRequired || 0;
+                      const priorityConfig = PRIORITY_CONFIG[req.priority || "normal"];
+
+                      return (
+                        <div
+                          key={req.id}
+                          className={`p-4 rounded-lg bg-card/50 border ${req.priority === "urgent" ? "border-red-500/50 ring-1 ring-red-500/30" : req.priority === "high" ? "border-orange-500/50" : "border-border"}`}
+                          data-testid={`card-assignment-${ac.id}`}
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${req.priority === "urgent" ? "bg-red-500/20" : req.priority === "high" ? "bg-orange-500/20" : "bg-primary/20"}`}>
+                                <Plane className={`w-5 h-5 ${req.priority === "urgent" ? "text-red-500" : req.priority === "high" ? "text-orange-500" : "text-primary"}`} />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="font-display font-semibold text-lg" data-testid={`text-registration-${ac.id}`}>
+                                    {ac.registration}
+                                  </h3>
+                                  <Badge className={`text-xs ${priorityConfig.color} text-white`}>
+                                    {priorityConfig.label}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {ac.type} • {ac.company}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Badge
+                                variant={b1Assigned.length >= req.b1Required ? "default" : "destructive"}
+                                className="font-mono"
+                              >
+                                B1: {b1Assigned.length}/{req.b1Required}
+                              </Badge>
+                              <Badge
+                                variant={b2Assigned.length >= req.b2Required ? "default" : "destructive"}
+                                className="font-mono"
+                              >
+                                B2: {b2Assigned.length}/{req.b2Required}
+                              </Badge>
+                              {helperReq > 0 && (
+                                <Badge
+                                  variant={helperAssigned.length >= helperReq ? "default" : "destructive"}
+                                  className="font-mono bg-purple-500/20 text-purple-300 border-purple-500/30"
+                                >
+                                  Helper: {helperAssigned.length}/{helperReq}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          {(req.specialSkillsRequired || []).length > 0 && (() => {
+                            const assignedEmps = acAssignments.map((a) => employees.find((e) => e.id === a.employeeId)).filter(Boolean);
+                            const coveredSkills = (req.specialSkillsRequired || []).filter((skill) =>
+                              assignedEmps.some((emp) => emp?.specialSkills.includes(skill))
+                            );
+                            const missingSkills = (req.specialSkillsRequired || []).filter((skill) => !coveredSkills.includes(skill));
+                            
+                            return (
+                              <div className="mb-4 p-3 rounded-lg bg-muted/30 border border-border">
+                                <div className="text-xs font-medium text-muted-foreground mb-2">Required Skills Coverage</div>
+                                <div className="flex flex-wrap gap-1">
+                                  {(req.specialSkillsRequired || []).map((skill) => {
+                                    const isCovered = coveredSkills.includes(skill);
+                                    const coveringEmp = assignedEmps.find((emp) => emp?.specialSkills.includes(skill));
+                                    return (
+                                      <Badge
+                                        key={skill}
+                                        variant={isCovered ? "default" : "destructive"}
+                                        className={`text-xs ${isCovered ? "bg-accent" : ""}`}
+                                        title={isCovered ? `Covered by ${coveringEmp?.name}` : "Not covered"}
+                                      >
+                                        {isCovered ? "✓" : "✗"} {SKILL_LABELS[skill]}
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                                {missingSkills.length > 0 && (
+                                  <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Missing: {missingSkills.map((s) => SKILL_LABELS[s]).join(", ")}
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })()}
+
+                          <div className={`grid gap-4 ${helperReq > 0 ? "grid-cols-3" : "grid-cols-2"}`}>
+                            <div>
+                              <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-primary" />
+                                B1 Mechanics
+                              </h4>
+                              <div className="space-y-2">
+                                {b1Assigned.map((assignment) => {
+                                  const emp = employees.find(
+                                    (e) => e.id === assignment.employeeId
+                                  );
+                                  const assignmentCount = getEmployeeAssignmentCount(assignment.employeeId);
+                                  const isMultiAssigned = assignmentCount >= 2;
+                                  return (
+                                    <div
+                                      key={assignment.id}
+                                      className={`flex items-center justify-between p-2 rounded ${isMultiAssigned ? "bg-amber-500/20 border border-amber-500/50 ring-1 ring-amber-500/30" : "bg-muted/50"}`}
+                                      data-testid={`row-assignment-${assignment.id}`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <User className={`h-4 w-4 ${isMultiAssigned ? "text-amber-500" : "text-muted-foreground"}`} />
+                                        <span className={`text-sm font-medium ${isMultiAssigned ? "text-amber-200" : ""}`}>
+                                          {emp?.name}
+                                        </span>
+                                        {isMultiAssigned && (
+                                          <Badge className="text-xs bg-amber-500/30 text-amber-300 border-amber-500/50">
+                                            {assignmentCount} aircraft
+                                          </Badge>
+                                        )}
+                                        {assignment.isManualOverride && (
+                                          <Badge variant="outline" className="text-xs">
+                                            Manual
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-destructive hover:text-destructive"
+                                        onClick={() => removeAssignment(assignment.id)}
+                                        data-testid={`button-remove-assignment-${assignment.id}`}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  );
+                                })}
+                                {b1Assigned.length < req.b1Required && (
+                                  <ManualAssignDialog
+                                    aircraft={ac}
+                                    role="B1"
+                                    employees={onDutyEmployees.filter(
+                                      (e) =>
+                                        canAssign(e, ac, "B1") &&
+                                        !todaysAssignments.find((a) => a.employeeId === e.id)
+                                    )}
+                                    onAssign={(empId) => addManualAssignment(ac.id, empId, "B1")}
+                                  />
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                                <Zap className="h-4 w-4 text-accent" />
+                                B2 Avionics
+                              </h4>
+                              <div className="space-y-2">
+                                {b2Assigned.map((assignment) => {
+                                  const emp = employees.find(
+                                    (e) => e.id === assignment.employeeId
+                                  );
+                                  const assignmentCount = getEmployeeAssignmentCount(assignment.employeeId);
+                                  const isMultiAssigned = assignmentCount >= 2;
+                                  return (
+                                    <div
+                                      key={assignment.id}
+                                      className={`flex items-center justify-between p-2 rounded ${isMultiAssigned ? "bg-amber-500/20 border border-amber-500/50 ring-1 ring-amber-500/30" : "bg-muted/50"}`}
+                                      data-testid={`row-assignment-${assignment.id}`}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <User className={`h-4 w-4 ${isMultiAssigned ? "text-amber-500" : "text-muted-foreground"}`} />
+                                        <span className={`text-sm font-medium ${isMultiAssigned ? "text-amber-200" : ""}`}>
+                                          {emp?.name}
+                                        </span>
+                                        {isMultiAssigned && (
+                                          <Badge className="text-xs bg-amber-500/30 text-amber-300 border-amber-500/50">
+                                            {assignmentCount} aircraft
+                                          </Badge>
+                                        )}
+                                        {assignment.isManualOverride && (
+                                          <Badge variant="outline" className="text-xs">
+                                            Manual
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-destructive hover:text-destructive"
+                                        onClick={() => removeAssignment(assignment.id)}
+                                        data-testid={`button-remove-assignment-${assignment.id}`}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  );
+                                })}
+                                {b2Assigned.length < req.b2Required && (
+                                  <ManualAssignDialog
+                                    aircraft={ac}
+                                    role="B2"
+                                    employees={onDutyEmployees.filter(
+                                      (e) =>
+                                        canAssign(e, ac, "B2") &&
+                                        !todaysAssignments.find((a) => a.employeeId === e.id)
+                                    )}
+                                    onAssign={(empId) => addManualAssignment(ac.id, empId, "B2")}
+                                  />
+                                )}
+                              </div>
+                            </div>
+
+                            {helperReq > 0 && (
+                              <div>
+                                <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                                  <Wrench className="h-4 w-4 text-purple-400" />
+                                  CAT A / Helpers
+                                </h4>
+                                <div className="space-y-2">
+                                  {helperAssigned.map((assignment) => {
+                                    const emp = employees.find(
+                                      (e) => e.id === assignment.employeeId
+                                    );
+                                    const assignmentCount = getEmployeeAssignmentCount(assignment.employeeId);
+                                    const isMultiAssigned = assignmentCount >= 2;
+                                    return (
+                                      <div
+                                        key={assignment.id}
+                                        className={`flex items-center justify-between p-2 rounded ${isMultiAssigned ? "bg-amber-500/20 border border-amber-500/50 ring-1 ring-amber-500/30" : "bg-muted/50"}`}
+                                        data-testid={`row-assignment-${assignment.id}`}
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <User className={`h-4 w-4 ${isMultiAssigned ? "text-amber-500" : "text-muted-foreground"}`} />
+                                          <span className={`text-sm font-medium ${isMultiAssigned ? "text-amber-200" : ""}`}>
+                                            {emp?.name}
+                                          </span>
+                                          {isMultiAssigned && (
+                                            <Badge className="text-xs bg-amber-500/30 text-amber-300 border-amber-500/50">
+                                              {assignmentCount} aircraft
+                                            </Badge>
+                                          )}
+                                          {assignment.isManualOverride && (
+                                            <Badge variant="outline" className="text-xs">
+                                              Manual
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 text-destructive hover:text-destructive"
+                                          onClick={() => removeAssignment(assignment.id)}
+                                          data-testid={`button-remove-assignment-${assignment.id}`}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    );
+                                  })}
+                                  {helperAssigned.length < helperReq && (
+                                    <ManualAssignDialog
+                                      aircraft={ac}
+                                      role="Helper"
+                                      employees={onDutyEmployees.filter(
+                                        (e) =>
+                                          (e.category === "CAT A" || e.category === "Helper") &&
+                                          !todaysAssignments.find((a) => a.employeeId === e.id)
+                                      )}
+                                      onAssign={(empId) => addManualAssignment(ac.id, empId, "Helper")}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="duty" className="space-y-6">
+            <Card className="glass border-border">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display">
+                  Duty Status - {format(selectedDate, "MMMM d, yyyy")}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={dutyFileInputRef}
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleDutyExcelUpload}
+                    className="hidden"
+                    data-testid="input-duty-file-upload"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAllDuty(false)}
+                    data-testid="button-all-off-duty"
+                  >
+                    All Off
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAllDuty(true)}
+                    data-testid="button-all-on-duty"
+                  >
+                    All On
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={downloadDutyTemplate}
+                    data-testid="button-download-duty-template"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Template
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => dutyFileInputRef.current?.click()}
+                    data-testid="button-upload-duty-excel"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Certification</TableHead>
+                      <TableHead>Aircraft Types</TableHead>
+                      <TableHead className="text-right">On Duty</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employees.map((emp) => {
+                      const status = todaysDuty.find((d) => d.employeeId === emp.id);
+                      const isOnDuty = status?.onDuty ?? true;
+                      return (
+                        <TableRow key={emp.id} data-testid={`row-duty-${emp.id}`}>
+                          <TableCell className="font-medium">{emp.name}</TableCell>
+                          <TableCell className="font-mono text-muted-foreground">
+                            {emp.employeeNumber}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1 flex-wrap">
+                              {emp.authorizations.map((auth) => (
+                                <Badge key={auth.aircraftType} variant="outline" className="text-xs">
+                                  {auth.aircraftType}: {auth.certification}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Switch
+                              checked={isOnDuty}
+                              onCheckedChange={() => toggleDutyStatus(emp.id)}
+                              data-testid={`switch-duty-${emp.id}`}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="requirements" className="space-y-6">
+            <Card className="glass border-border">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display">
+                  Work Requirements - {format(selectedDate, "MMMM d, yyyy")}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Input
+                      placeholder="Type registration (e.g., JCC)"
+                      value={registrationInput}
+                      onChange={(e) => setRegistrationInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => e.key === "Enter" && addAircraftByRegistration()}
+                      className="w-56 font-mono"
+                      data-testid="input-registration"
+                    />
+                  </div>
+                  <Select value="" onValueChange={(v) => setRegistrationInput(v)}>
+                    <SelectTrigger className="w-48" data-testid="select-registration">
+                      <SelectValue placeholder="Or select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMPANIES.map((company) => {
+                        const available = aircraft
+                          .filter((ac) => ac.company === company)
+                          .filter((ac) => !todaysRequirements.some((r) => r.aircraftId === ac.id));
+                        if (available.length === 0) return null;
+                        return (
+                          <div key={company}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                              {company}
+                            </div>
+                            {available.map((ac) => (
+                              <SelectItem key={ac.id} value={ac.registration}>
+                                {ac.registration} ({ac.type})
+                              </SelectItem>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={addAircraftByRegistration}
+                    disabled={!registrationInput}
+                    data-testid="button-add-aircraft-req"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Aircraft
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {todaysRequirements.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Plane className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium">No aircraft scheduled for today</p>
+                    <p className="text-sm">Enter aircraft registrations above to add them to today's work.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Aircraft</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>B1</TableHead>
+                        <TableHead>B2</TableHead>
+                        <TableHead>Helper</TableHead>
+                        <TableHead>Required Skills</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {todaysRequirements.map((req) => {
+                        const ac = aircraft.find((a) => a.id === req.aircraftId);
+                        if (!ac) return null;
+                        return (
+                          <TableRow key={req.id} data-testid={`row-requirement-${req.id}`}>
+                            <TableCell>
+                              <Select 
+                                value={req.priority || "normal"} 
+                                onValueChange={(v) => updatePriority(req.id, v as Priority)}
+                              >
+                                <SelectTrigger className="w-24 h-8" data-testid={`select-priority-${req.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(["urgent", "high", "normal", "low"] as Priority[]).map((p) => (
+                                    <SelectItem key={p} value={p}>
+                                      <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full ${PRIORITY_CONFIG[p].color}`} />
+                                        {PRIORITY_CONFIG[p].label}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="font-medium font-mono">
+                              {ac.registration}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{ac.type}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    updateWorkRequirement(req.aircraftId, "b1Required", req.b1Required - 1)
+                                  }
+                                  data-testid={`button-dec-b1-${req.id}`}
+                                >
+                                  -
+                                </Button>
+                                <span className="w-8 text-center font-mono">
+                                  {req.b1Required}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    updateWorkRequirement(req.aircraftId, "b1Required", req.b1Required + 1)
+                                  }
+                                  data-testid={`button-inc-b1-${req.id}`}
+                                >
+                                  +
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    updateWorkRequirement(req.aircraftId, "b2Required", req.b2Required - 1)
+                                  }
+                                  data-testid={`button-dec-b2-${req.id}`}
+                                >
+                                  -
+                                </Button>
+                                <span className="w-8 text-center font-mono">
+                                  {req.b2Required}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    updateWorkRequirement(req.aircraftId, "b2Required", req.b2Required + 1)
+                                  }
+                                  data-testid={`button-inc-b2-${req.id}`}
+                                >
+                                  +
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    updateWorkRequirement(req.aircraftId, "helperRequired", (req.helperRequired || 0) - 1)
+                                  }
+                                  data-testid={`button-dec-helper-${req.id}`}
+                                >
+                                  -
+                                </Button>
+                                <span className="w-8 text-center font-mono">
+                                  {req.helperRequired || 0}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    updateWorkRequirement(req.aircraftId, "helperRequired", (req.helperRequired || 0) + 1)
+                                  }
+                                  data-testid={`button-inc-helper-${req.id}`}
+                                >
+                                  +
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1">
+                                {SPECIAL_SKILLS.map((skill) => (
+                                  <Badge
+                                    key={skill}
+                                    variant={(req.specialSkillsRequired || []).includes(skill) ? "default" : "outline"}
+                                    className={`cursor-pointer text-xs transition-all ${(req.specialSkillsRequired || []).includes(skill) ? "bg-accent" : "opacity-50 hover:opacity-100"}`}
+                                    onClick={() => toggleRequiredSkill(req.id, skill)}
+                                    data-testid={`badge-req-skill-${req.id}-${skill}`}
+                                  >
+                                    {SKILL_LABELS[skill]}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => removeWorkRequirement(req.id)}
+                                data-testid={`button-remove-req-${req.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="employees" className="space-y-6">
+            <Card className="glass border-border">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display">Employee Database</CardTitle>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleExcelUpload}
+                    className="hidden"
+                    data-testid="input-file-upload"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={downloadExcelTemplate}
+                    data-testid="button-download-template"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Template
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    data-testid="button-upload-excel"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import Excel
+                  </Button>
+                  <Dialog open={showEmployeeDialog} onOpenChange={setShowEmployeeDialog}>
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={() => setEditingEmployee(null)}
+                        data-testid="button-add-employee"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Employee
+                      </Button>
+                    </DialogTrigger>
+                    <EmployeeDialog
+                      employee={editingEmployee}
+                      onSave={saveEmployee}
+                      onClose={() => {
+                        setShowEmployeeDialog(false);
+                        setEditingEmployee(null);
+                      }}
+                    />
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Employee #</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Aircraft Authorizations</TableHead>
+                      <TableHead>Borescope</TableHead>
+                      <TableHead>Special Skills</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employees.map((emp) => (
+                      <TableRow key={emp.id} data-testid={`row-employee-${emp.id}`}>
+                        <TableCell className="font-medium">{emp.name}</TableCell>
+                        <TableCell className="font-mono text-muted-foreground">
+                          {emp.employeeNumber}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={emp.category === "Licensed" ? "default" : "secondary"}
+                            className={`text-xs ${emp.category === "CAT A" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : emp.category === "Helper" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : ""}`}
+                          >
+                            {emp.category || "Licensed"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {emp.category === "Licensed" ? (
+                              emp.authorizations.map((auth) => (
+                                <Badge 
+                                  key={auth.aircraftType} 
+                                  variant={auth.certification === "B1/2" ? "default" : "outline"} 
+                                  className="text-xs"
+                                >
+                                  {auth.aircraftType}: {auth.certification}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">All aircraft (helper)</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {emp.borescopeAuths?.map((type) => (
+                              <Badge
+                                key={type}
+                                variant="outline"
+                                className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/30"
+                              >
+                                {type}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {emp.specialSkills.map((skill) => (
+                              <Badge
+                                key={skill}
+                                variant="outline"
+                                className="text-xs bg-accent/10 text-accent border-accent/30"
+                              >
+                                {SKILL_LABELS[skill]}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingEmployee(emp);
+                                setShowEmployeeDialog(true);
+                              }}
+                              data-testid={`button-edit-employee-${emp.id}`}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => deleteEmployee(emp.id)}
+                              data-testid={`button-delete-employee-${emp.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="aircraft" className="space-y-6">
+            <Card className="glass border-border">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-display">Aircraft Fleet</CardTitle>
+                <Dialog open={showAircraftDialog} onOpenChange={setShowAircraftDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      onClick={() => setEditingAircraft(null)}
+                      data-testid="button-add-aircraft"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Aircraft
+                    </Button>
+                  </DialogTrigger>
+                  <AircraftDialog
+                    aircraft={editingAircraft}
+                    onSave={saveAircraft}
+                    onClose={() => {
+                      setShowAircraftDialog(false);
+                      setEditingAircraft(null);
+                    }}
+                  />
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                {COMPANIES.map((company) => {
+                  const companyAircraft = aircraft.filter((ac) => ac.company === company);
+                  if (companyAircraft.length === 0) return null;
+                  return (
+                    <div key={company} className="mb-6 last:mb-0">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-sm font-semibold ${company === "LX" ? "bg-blue-500/20 text-blue-300 border-blue-500/30" : "bg-purple-500/20 text-purple-300 border-purple-500/30"}`}
+                        >
+                          {company}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">({companyAircraft.length} aircraft)</span>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Registration</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {companyAircraft.map((ac) => (
+                            <TableRow key={ac.id} data-testid={`row-aircraft-${ac.id}`}>
+                              <TableCell className="font-medium font-mono">
+                                {ac.registration}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="secondary">{ac.type}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setEditingAircraft(ac);
+                                      setShowAircraftDialog(true);
+                                    }}
+                                    data-testid={`button-edit-aircraft-${ac.id}`}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => deleteAircraft(ac.id)}
+                                    data-testid={`button-delete-aircraft-${ac.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}
+
+function EmployeeDialog({
+  employee,
+  onSave,
+  onClose,
+}: {
+  employee: Employee | null;
+  onSave: (emp: Employee) => void;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState(employee?.name || "");
+  const [employeeNumber, setEmployeeNumber] = useState(
+    employee?.employeeNumber || ""
+  );
+  const [category, setCategory] = useState<EmployeeCategory>(
+    employee?.category || "Licensed"
+  );
+  const [authorizations, setAuthorizations] = useState<AircraftAuthorization[]>(
+    employee?.authorizations || []
+  );
+  const [specialSkills, setSpecialSkills] = useState<SpecialSkill[]>(
+    employee?.specialSkills || []
+  );
+  const [borescopeAuths, setBorescopeAuths] = useState<BorescopeAuth[]>(
+    employee?.borescopeAuths || []
+  );
+
+  useEffect(() => {
+    if (employee) {
+      setName(employee.name);
+      setEmployeeNumber(employee.employeeNumber);
+      setCategory(employee.category || "Licensed");
+      setAuthorizations(employee.authorizations);
+      setSpecialSkills(employee.specialSkills);
+      setBorescopeAuths(employee.borescopeAuths || []);
+    } else {
+      setName("");
+      setEmployeeNumber("");
+      setCategory("Licensed");
+      setAuthorizations([]);
+      setSpecialSkills([]);
+      setBorescopeAuths([]);
+    }
+  }, [employee]);
+
+  const handleSave = () => {
+    if (!name || !employeeNumber) return;
+    onSave({
+      id: employee?.id || "",
+      name,
+      employeeNumber,
+      category,
+      authorizations: category === "Licensed" ? authorizations : [],
+      specialSkills,
+      borescopeAuths: category === "Licensed" ? borescopeAuths : [],
+    });
+  };
+
+  const getAuthForType = (type: AircraftType): Certification | null => {
+    const auth = authorizations.find((a) => a.aircraftType === type);
+    return auth?.certification || null;
+  };
+
+  const cycleAuthorization = (type: AircraftType) => {
+    const current = getAuthForType(type);
+    if (current === null) {
+      setAuthorizations((prev) => [...prev, { aircraftType: type, certification: "B1" }]);
+    } else if (current === "B1") {
+      setAuthorizations((prev) =>
+        prev.map((a) => (a.aircraftType === type ? { ...a, certification: "B2" } : a))
+      );
+    } else if (current === "B2") {
+      setAuthorizations((prev) =>
+        prev.map((a) => (a.aircraftType === type ? { ...a, certification: "B1/2" } : a))
+      );
+    } else {
+      setAuthorizations((prev) => prev.filter((a) => a.aircraftType !== type));
+    }
+  };
+
+  const toggleSkill = (skill: SpecialSkill) => {
+    setSpecialSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  };
+
+  const toggleBorescope = (type: BorescopeAuth) => {
+    setBorescopeAuths((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
+
+  return (
+    <DialogContent className="glass border-border max-w-lg">
+      <DialogHeader>
+        <DialogTitle className="font-display">
+          {employee ? "Edit Employee" : "Add New Employee"}
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4 py-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Smith"
+              data-testid="input-employee-name"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="empNumber">Employee Number</Label>
+            <Input
+              id="empNumber"
+              value={employeeNumber}
+              onChange={(e) => setEmployeeNumber(e.target.value)}
+              placeholder="EMP001"
+              className="font-mono"
+              data-testid="input-employee-number"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as EmployeeCategory)}>
+              <SelectTrigger data-testid="select-category">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EMPLOYEE_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {category === "Licensed" && (
+          <div className="space-y-2">
+            <Label>Aircraft Authorizations <span className="text-xs text-muted-foreground">(click to cycle: none → B1 → B2 → B1/2 → none)</span></Label>
+            <div className="flex flex-wrap gap-2">
+              {AIRCRAFT_TYPES.map((type) => {
+                const cert = getAuthForType(type);
+                return (
+                  <Badge
+                    key={type}
+                    variant={cert ? "default" : "outline"}
+                    className={`cursor-pointer transition-all ${cert === "B1/2" ? "bg-primary" : cert === "B1" ? "bg-blue-600" : cert === "B2" ? "bg-green-600" : ""}`}
+                    onClick={() => cycleAuthorization(type)}
+                    data-testid={`badge-aircraft-type-${type}`}
+                  >
+                    {type}{cert ? `: ${cert}` : ""}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {category !== "Licensed" && (
+          <div className="p-4 rounded-lg bg-muted/50 border border-border">
+            <p className="text-sm text-muted-foreground">
+              {category === "CAT A" 
+                ? "CAT A employees can work as helpers on any aircraft type."
+                : "Helper employees can assist on any aircraft without specific certifications."}
+            </p>
+          </div>
+        )}
+
+        {category === "Licensed" && (
+          <div className="space-y-2">
+            <Label>Borescope Authorizations <span className="text-xs text-muted-foreground">(per aircraft type)</span></Label>
+            <div className="flex flex-wrap gap-2">
+              {AIRCRAFT_TYPES.map((type) => (
+                <Badge
+                  key={type}
+                  variant={borescopeAuths.includes(type) ? "default" : "outline"}
+                  className={`cursor-pointer transition-all ${borescopeAuths.includes(type) ? "bg-purple-600" : ""}`}
+                  onClick={() => toggleBorescope(type)}
+                  data-testid={`badge-borescope-${type}`}
+                >
+                  🔍 {type}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label>Special Skills</Label>
+          <div className="flex flex-wrap gap-2">
+            {SPECIAL_SKILLS.map((skill) => (
+              <Badge
+                key={skill}
+                variant={specialSkills.includes(skill) ? "default" : "outline"}
+                className={`cursor-pointer transition-all ${specialSkills.includes(skill) ? "bg-accent text-accent-foreground" : ""}`}
+                onClick={() => toggleSkill(skill)}
+                data-testid={`badge-skill-${skill}`}
+              >
+                {SKILL_LABELS[skill]}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button variant="outline" onClick={onClose} data-testid="button-cancel-employee">
+            Cancel
+          </Button>
+        </DialogClose>
+        <Button onClick={handleSave} data-testid="button-save-employee">
+          {employee ? "Save Changes" : "Add Employee"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
+function AircraftDialog({
+  aircraft,
+  onSave,
+  onClose,
+}: {
+  aircraft: Aircraft | null;
+  onSave: (ac: Aircraft) => void;
+  onClose: () => void;
+}) {
+  const [registration, setRegistration] = useState(aircraft?.registration || "");
+  const [type, setType] = useState<AircraftType>(aircraft?.type || "A320");
+  const [company, setCompany] = useState<Company>(aircraft?.company || "LX");
+
+  useEffect(() => {
+    if (aircraft) {
+      setRegistration(aircraft.registration);
+      setType(aircraft.type);
+      setCompany(aircraft.company || "LX");
+    } else {
+      setRegistration("");
+      setType("A320");
+      setCompany("LX");
+    }
+  }, [aircraft]);
+
+  const handleSave = () => {
+    if (!registration) return;
+    onSave({
+      id: aircraft?.id || "",
+      registration,
+      type,
+      company,
+    });
+  };
+
+  return (
+    <DialogContent className="glass border-border max-w-md">
+      <DialogHeader>
+        <DialogTitle className="font-display">
+          {aircraft ? "Edit Aircraft" : "Add New Aircraft"}
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4 py-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="registration">Registration</Label>
+            <Input
+              id="registration"
+              value={registration}
+              onChange={(e) => setRegistration(e.target.value)}
+              placeholder="CS-TJE"
+              className="font-mono"
+              data-testid="input-aircraft-registration"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Company</Label>
+            <Select value={company} onValueChange={(v) => setCompany(v as Company)}>
+              <SelectTrigger data-testid="select-aircraft-company">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LX">LX</SelectItem>
+                <SelectItem value="WK">WK</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Aircraft Type</Label>
+          <Select value={type} onValueChange={(v) => setType(v as AircraftType)}>
+            <SelectTrigger data-testid="select-aircraft-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {AIRCRAFT_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button variant="outline" onClick={onClose} data-testid="button-cancel-aircraft">
+            Cancel
+          </Button>
+        </DialogClose>
+        <Button onClick={handleSave} data-testid="button-save-aircraft">
+          {aircraft ? "Save Changes" : "Add Aircraft"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
+function ManualAssignDialog({
+  aircraft,
+  role,
+  employees,
+  onAssign,
+}: {
+  aircraft: Aircraft;
+  role: "B1" | "B2" | "Helper";
+  employees: Employee[];
+  onAssign: (employeeId: string) => void;
+}) {
+  const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full border-dashed"
+          data-testid={`button-manual-assign-${aircraft.id}-${role}`}
+        >
+          <Plus className="h-3 w-3 mr-1" />
+          Assign {role}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="glass border-border max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display">
+            Manual Assignment - {role}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            Assign a {role} technician to {aircraft.registration} ({aircraft.type})
+          </p>
+          {employees.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No eligible employees available for this assignment.
+            </div>
+          ) : (
+            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+              <SelectTrigger data-testid="select-manual-employee">
+                <SelectValue placeholder="Select an employee" />
+              </SelectTrigger>
+              <SelectContent>
+                {employees.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    {emp.name} ({emp.employeeNumber})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" data-testid="button-cancel-manual-assign">
+              Cancel
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button
+              onClick={() => {
+                if (selectedEmployee) {
+                  onAssign(selectedEmployee);
+                  setSelectedEmployee("");
+                }
+              }}
+              disabled={!selectedEmployee}
+              data-testid="button-confirm-manual-assign"
+            >
+              Assign
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+=== END OF home.tsx ===
+
+=== client/src/index.css ===
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-primary-border: hsl(var(--primary-border));
+  --color-accent-border: hsl(var(--accent-border));
+  --color-card-border: hsl(var(--card-border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-primary-border: var(--primary-border);
+  --color-secondary-border: var(--secondary-border);
+  --color-muted-border: var(--muted-border);
+  --color-accent-border: var(--accent-border);
+  --color-destructive-border: var(--destructive-border);
+}
+
+:root {
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(255,255,255, .08);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(255,255,255, .03);
+  --elevate-2: rgba(255,255,255, .06);
+
+  --background: 222 47% 6%;
+  --foreground: 210 40% 98%;
+  --border: 217 33% 17%;
+  --card: 222 47% 8%;
+  --card-foreground: 210 40% 98%;
+  --card-border: 217 33% 15%;
+  --sidebar: 222 47% 7%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-border: 217 33% 15%;
+  --sidebar-primary: 199 89% 48%;
+  --sidebar-primary-foreground: 222 47% 6%;
+  --sidebar-accent: 217 33% 12%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-ring: 199 89% 48%;
+  --popover: 222 47% 9%;
+  --popover-foreground: 210 40% 98%;
+  --popover-border: 217 33% 17%;
+  --primary: 199 89% 48%;
+  --primary-foreground: 222 47% 6%;
+  --secondary: 217 33% 15%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 33% 12%;
+  --muted-foreground: 215 20% 55%;
+  --accent: 142 71% 45%;
+  --accent-foreground: 222 47% 6%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --input: 217 33% 20%;
+  --ring: 199 89% 48%;
+  --chart-1: 199 89% 48%;
+  --chart-2: 142 71% 45%;
+  --chart-3: 45 93% 58%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 0 84% 60%;
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: .625rem;
+  --shadow-2xs: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
+  --shadow: 0 4px 6px rgba(0,0,0,0.4);
+  --shadow-md: 0 6px 10px rgba(0,0,0,0.5);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.5);
+  --shadow-xl: 0 15px 30px rgba(0,0,0,0.6);
+  --shadow-2xl: 0 25px 50px rgba(0,0,0,0.7);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(var(--secondary));
+  --muted-border: hsl(var(--muted));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-feature-settings: "ss01", "ss02", "cv01";
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+  
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+  
+  .font-display {
+    font-family: var(--font-display);
+  }
+  
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3), 0 0 40px rgba(14, 165, 233, 0.1);
+  }
+  
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3), 0 0 40px rgba(34, 197, 94, 0.1);
+  }
+  
+  .glass {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .grid-pattern {
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+
+=== END OF index.css ===
+
+=== client/public/manifest.json ===
+
+{
+  "name": "AeroStaff - Aircraft Maintenance Staffing",
+  "short_name": "AeroStaff",
+  "description": "Aircraft maintenance staffing planner for managing employees, certifications, and daily assignments",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+
+=== END OF manifest.json ===
+
+=== client/public/sw.js ===
+
+const CACHE_NAME = 'aerostaff-v2';
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/manifest.json',
+        '/icon.svg'
+      ]);
+    })
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  
+  event.respondWith(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        }).catch(() => {
+          return cachedResponse;
+        });
+        
+        return cachedResponse || fetchPromise;
+      });
+    })
+  );
+});
+
+
+=== END OF sw.js ===
+
+=== client/public/icon.svg ===
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="64" fill="#0a0a1a"/>
+  <path d="M256 80L420 280L256 200L92 280L256 80Z" fill="#3b82f6"/>
+  <path d="M256 200L420 280L256 360L92 280L256 200Z" fill="#60a5fa"/>
+  <path d="M256 280L340 320L256 432L172 320L256 280Z" fill="#93c5fd"/>
+</svg>

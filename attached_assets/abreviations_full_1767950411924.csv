@@ -1,0 +1,248 @@
+;;Valid;Work;Day;Special duty;;;;Block.;Generic term;;;
+Abv.;Text;from;pattern;code;Code;Start;End;Reference;A.sched.;Text;add.;Position;Position
+-;-   off day;01.01.90;0099;;;;;;-;;+;;
+--;-   off day Wunsch;01.01.90;S200;;;;;;-;Wunsch off;+;-1;-1
+!;Unexp. Absence;01.01.19;;!;;;;;-;Unexpected Absence;+;-1;-1
+..;-   off day;01.01.90;0027;;;;;;-;;+;-1;-1
+_;School - off;01.01.04;0099;SI;;;;;-;;+;-7001;-7001
+37;Planning WT 37 Hrs;01.09.03;AZ37;;;;;;-;Planning WT 37 Hrs;+;-5;-5
+38;Planning WT 38 Hrs;01.09.03;AZ38;;;;;;-;Planning WT 38 Hrs;+;-5;-5
+39;Planning WT 39 Hrs;01.09.03;AZ39;;;;;;-;Planning WT 39 Hrs;+;-5;-5
+40;Planning WT 40 Hrs;01.09.03;AZ40;;;;;;-;Planning WT 40 Hrs;+;-5;-5
+41;Planning WT 41 hrs;01.09.14;O001;;;;;;-;Planning WT 41 hrs;+;-5;-5
+61;Planing 61.10%;01.01.16;R601;;;;;;-;Planning 61.10%;+;-10;-10
+65;Planing 65%;01.01.90;R650;;;;;;-;Planning 65%;+;-5;-5
+75;Planning 75%;01.01.90;R750;;;;;;-;Planning 75%;+;-5;-5
+ab;Acc. hourly with Certificate;01.05.23;;ab;;;;;-;Acc. hourly with Cer;-;-9201;-9201
+AB;Acc. with Certificate;01.05.23;;AB;;;;;-;Acc. with Certificat;-;-9201;-9201
+ac;Accident with Cert. hourly;01.01.90;;ac;;;;;-;Accident;-;-9201;-9201
+AC;Accident with Certificate;01.01.90;;AC;;;;;-;;-;-9201;-9201
+ah;Accident  halfday;01.01.03;;ah;;;;;-;Accident halfday;-;-9201;-9201
+AP;Accident (PEP);01.01.90;0099;AP;;;;;-;Accident;-;-9201;-9201
+aw;Accident w/o Cert. hourly;01.01.90;;aw;;;;;-;Accident;-;-9201;-9201
+AW;Accident without Certificate;01.01.90;;AW;;;;;-;Accident;-;-9201;-9201
+ax;Accident  halfday (1/10);01.01.03;;ax;;;;;-;Accident halfday (1/;-;-9201;-9201
+AX;Accident w/o Cert 1/5 weekly h;01.01.90;;AX;;;;;-;Accident;-;-9201;-9201
+B+;Business Trip Request;01.01.24;;B+;;;;;-;Business Trip Reques;-;-8011;-8011
+BE;Bern;01.01.90;;BE;;;;;-;Outstation;-;-9101;-9101
+BL;Business Trip;01.05.17;;BL;;;;;-;No Pikett;-;-11;-11
+BS;Basel;01.01.90;;BS;;;;;-;Outstation;-;-9101;-9101
+bt;Business Trip hourly;01.01.90;;bt;;;;;-;;-;;
+BT;Business Trip;01.01.90;;BT;;;;;-;Business Trip;-;-10;-10
+CX;Ang. CORONA OFF;01.03.20;;CX;;;;;-;Unexpected Absence;+;;
+ET;Educational Trip;01.01.90;;ET;;;;;-;Educational Trip;-;-9101;-9101
+f+;Komp. requested;01.06.13;;f+;;;;;-;Komp. requested;-;-8001;-8001
+F+;Flexitime;01.01.90;;F+;;;;;-;Flexitime not grante;-;-8011;-8011
+FD;Flight Duty;01.01.23;;FD;;;;;-;Flight Duty;-;-20;-20
+fl;Halfday Komp. ex Flextime;01.01.90;;fl;;;;;-;Kompensation;-;-8501;-8501
+FL;Kompensation ex Flextime;01.01.90;;FL;;;;;-;Kompensation ex Flex;-;-8011;-8011
+FO;Flight Duty on Weekends;01.01.23;;FO;;;;;-;Flight Duty on Weeke;-;-20;-20
+GA;GATA - Office Days;01.01.90;;GA;;;;;-;Paid Leave;-;-9201;-9201
+GE;Geneva;01.01.90;;GE;;;;;-;Outstation;-;-9101;-9101
+H+;Home Office (Workflow);01.01.90;;H+;;;;;-;Home Office Workflow;-;-8011;-8011
+HC;Home Office Corona;01.03.20;;HC;;;;;-;Home Office Corona;-;-8011;-8011
+hh;Home Office halfday;01.11.12;;hh;;;;;-;Home Office halfday;-;-9101;-9101
+HO;Home Office;01.11.12;;HO;;;;;-;;-;-20;-20
+I+;Home Office (Workflow);01.06.17;;I+;;;;;-;Flexitime not grante;-;-8011;-8011
+IB;Baby Leave with Certificate;01.07.09;;IB;;;;;-;Sick;-;-9201;-9201
+ic;Sick with Certificate hourly;01.01.90;;ic;;;;;+;Sick;-;-9201;-9201
+IC;Sick with Certificate;01.01.90;;IC;;;;;-;Sick with Certificat;-;-9201;-9201
+ID;Ind. Schedule;01.01.90;$IND;;;;;;-;Ind. Schedule;-;-7000;-7000
+ih;Sick with Certificate halfday;01.01.90;;ih;;;;;-;Sick;-;-9201;-9201
+im;Sick halfday during pregnancy;01.07.09;;im;;;;;-;Sick;-;-9201;-9201
+IM;Baby Leave;01.01.90;;IM;;;;;-;Sick;-;-9201;-9201
+in;care of child hourly;29.04.15;;in;;;;;-;Sick;-;-9201;-9201
+IN;Nurse of close relatives;01.01.90;;IN;;;;;-;Sick;-;-9201;-9201
+IP;Sick (PEP);01.01.90;0099;IP;;;;;-;Sick;-;-9201;-9201
+iw;Sick w/o Certificate hourly;01.01.90;;iw;;;;;+;Sick;-;-9201;-9201
+IW;Sick without Certificate;01.01.90;;IW;;;;;-;Sick;-;-9201;-9201
+ix;Sick  halfday (1/10);01.01.09;;ix;;;;;-;Sick halfday (1/10 W;-;-9201;-9201
+IX;Sick w/o Cert. 1/5 weekly Hrs;01.01.90;;IX;;;;;-;Sick;-;-9201;-9201
+J;Joker Day;01.01.22;;J;;;;;-;;+;-1;-1
+K%;Compensation withdrawn;18.03.20;;K%;;;;;-;Compensation withdra;+;-1;-1
+k+;Komp. requested;01.06.13;;k+;;;;;-;Komp. requested;-;-8001;-8001
+K+;Compensation;01.01.12;;K+;;;;;-;Compensation not gra;-;-8001;-8001
+K5;Kader half day;01.03.22;T811;;;;;;-;Kader half day;+;-5;-5
+K8;EMS Planning Cadre 80 %;01.03.22;TC80;;;;;;-;Y6;+;-10;-10
+ka;Kurzarbeit halber Tag;23.03.20;;ka;;;;;-;Kurzarbeit halber Ta;-;-8011;-8011
+KA;Shorttime Work;23.03.20;;KA;;;;;-;Shorttime work;-;-8011;-8011
+kb;Komp. ex time bonus;01.01.90;;kb;;;;;-;Kompensation;-;-8501;-8501
+KB;Kompensation ex Timebonus;01.01.90;;KB;;;;;-;Kompensation;-;-8006;-8006
+kh;Komp. ex Overtime halfday;01.01.03;;kh;;;;;-;Kompensation halfday;-;-8501;-8501
+KH;;01.01.21;;KH;;;;;-;;+;-1;-1
+KK;Care of relatives 3d (Manager);01.01.14;;KK;;;;;-;Sick;-;-9201;-9201
+ko;Komp. ex Overtime hourly;01.01.90;;ko;;;;;-;Kompensation;-;-8501;-8501
+KO;Kompensation ex Overtime;01.01.90;;KO;;;;;-;Kompensation;-;-8011;-8011
+kx;Komp. ex Overtime 1/10 WS;01.01.90;;kx;;;;;-;Kompensation;-;-8501;-8501
+L+;Applying UBU;01.11.19;;L+;;;;;-;Applying for Unpaid;-;-8011;-8011
+M%;Military withdrawn;18.03.20;;M%;;;;;-;Military withdrawn;+;-1;-1
+M+;Military applied;01.11.19;;M+;;;;;-;Applying for Militar;-;-8011;-8011
+MC;Military with EO;01.01.90;;MC;;;;;-;Military;-;-9201;-9201
+MF;Military in France;01.01.90;;MF;;;;;-;Military;-;-9201;-9201
+MG;Military in Germany;01.01.90;;MG;;;;;-;Military;-;-9201;-9201
+MW;Military without EO;01.01.90;;MW;;;;;-;Military;-;-9201;-9201
+MX;Military 1/5 weekly Hrs;01.01.90;;MX;;;;;+;Military;-;-9201;-9201
+OA;;01.01.18;;OA;;;;;-;;+;-1;-1
+OF;Office Duty;01.01.90;;OF;;;;;-;Office Duty;-;-8001;-8001
+OG;Office Germany;01.01.18;;OG;;;;;-;Office Germany;+;-1;-1
+p;Planning 100 %;01.09.03;1001;;;;;;-;Planning 100 %;+;-10;-10
+P%;;18.03.20;;P%;;;;;-;;+;-1;-1
+P+;Birth (2 Days);01.01.13;;P+;;;;;-;Paid Leave;-;-9201;-9201
+P1;Pit Stop P1;01.03.09;;P1;;;;;-;Pit Stop;-;-9201;-9201
+p2;Planing 20%;01.01.90;R200;;;;;;-;Planning 20%;+;-5;-5
+P2;Pit Stop P2;01.01.10;;P2;;;;;-;Pit Stop;-;-9201;-9201
+p3;Planing 30%;01.01.90;R300;;;;;;-;Planning 30%;+;-5;-5
+p4;Planing 40%;01.01.90;R400;;;;;;-;Planning 40%;+;-5;-5
+p5;Planing 50%;01.01.90;R500;;;;;;-;Planning 50%;+;-5;-5
+p6;Planing 60%;01.01.90;R600;;;;;;-;Planning 60%;+;-10;-10
+p7;Planing 70%;01.01.90;R700;;;;;;-;Planning 70%;+;-5;-5
+p8;Planing 80%;01.01.90;R800;;;;;;-;Planning 80%;+;-10;-10
+p9;Planing 90%;01.01.90;R900;;;;;;-;Planning 90%;+;-5;-5
+PB;Birth (2 Days);01.01.90;;PB;;;;;-;Paid Leave;-;-9201;-9201
+PC;Wedding (Child - 1 Day);01.01.90;;PC;;;;;-;Paid Leave;-;-9201;-9201
+PD;Death (Spouse,Child,Parents) 3;01.01.90;;PD;;;;;-;Paid Leave;-;-9201;-9201
+pe;PEKO leave hourly;01.04.04;;pe;;;;;-;Paid Leave;-;-9201;-9201
+PE;PEKO - Office Days;01.04.04;;PE;;;;;-;Paid Leave;-;-9201;-9201
+PG;Death (In-Law,grandp.,etc) 2;01.01.90;;PG;;;;;+;Death (In-Law,grandp;-;-9201;-9201
+ph;Paid leave halfday;01.01.03;;ph;;;;;-;Paid Leave halfday;-;-9201;-9201
+PH;Moving HB >100 km 2 Days;01.01.90;;PH;;;;;-;Paid Leave;-;-9201;-9201
+PI;Death (In-Law, b/s.,etc) 1;01.01.90;;PI;;;;;-;Paid Leave;-;-9201;-9201
+PK;Baby Leave (Mutterschaftsurl);01.01.90;;PK;;;;;-;Paid Leave;-;-9201;-9201
+pl;Paid leave hourly;01.01.90;;pl;;;;;-;Paid Leave;-;-9201;-9201
+PL;Paid Leave;01.01.90;;PL;;;;;-;Paid Leave;-;-9201;-9201
+PM;Moving (1 Day);01.01.90;;PM;;;;;-;Paid Leave;-;-9201;-9201
+PO;Public Office;01.01.90;;PO;;;;;-;Paid Leave;-;-9201;-9201
+PP;Paid Leave (PEP);01.01.90;0099;PP;;;;;-;Paid Leave;-;-9201;-9201
+PQ;Paid Quarantine;01.08.20;;PQ;;;;;-;Paid Quarantine;-;-9201;-9201
+PR;Projects;01.01.90;;PR;;;;;-;Projects;-;-8101;-8101
+ps;Paid leave Social Plan halfd.;01.01.03;;ps;;;;;-;Paid Leave halfday;-;-9201;-9201
+PS;Paid Leave Social Plan;01.07.03;;PS;;;;;-;Paid Leave;-;-9201;-9201
+pu;PEKO leave hourly;01.01.20;;pu;;;;;-;Paid Leave;-;-9201;-9201
+PU;Union work - absence;01.04.17;;PU;;;;;-;Union work - absence;+;-9202;-9202
+PV;PL Special Vulcanic;01.04.10;;PV;;;;;-;PL Special Vulcanic;-;-9201;-9201
+PW;Wedding (own - 3 Days);01.01.90;;PW;;;;;-;Paid Leave;-;-9201;-9201
+px;Paid leave halfday (1/10 WH);01.01.03;;ph;;;;;-;Paid Leave halfday (;-;-9201;-9201
+PX;Paid Leave 1/5 weekly Hrs;01.01.90;;PX;;;;;-;Paid Leave;-;-9201;-9201
+QA;Quarantäne CORONA;23.03.20;;QA;;;;;-;Quarantäne CORONA;-;;
+r;EMS Planning CLA 100 %;01.05.17;E10R;;;;;;-;EMS Planning 100 %;+;-10;-10
+r6;EMS Planning CLA 65 %;01.04.22;E650;;;;;;-;EMS Planning CLA 65%;+;-10;-10
+ra;EMS Planning CLA 100 %;01.05.17;E10R;;;;;;-;EMS Planning 100 %;+;-10;-10
+rb;EMS Planning CLA 100 %;01.05.17;E60R;;;;;;-;EMS Planning 100 %;+;-10;-10
+rc;EMS Planning CLA 100 %;01.05.17;E70R;;;;;;-;EMS Planning 100 %;+;-10;-10
+rd;EMS Planning CLA 100 %;01.05.17;E40R;;;;;;-;EMS Planning 100 %;+;-10;-10
+rh;Reduced WH (KA) 1/10 weekly Hr;01.06.09;;rh;;;;;-;Reduced WH (KA) half;-;-9201;-9201
+RH;Reduced WH (KA) 1/5 weekly Hr;01.06.09;;RH;;;;;-;Reduced WH (KA);-;-9201;-9201
+S*;School on Days off;01.01.90;;S*;;;;;-;School;-;-7001;-7001
+S+;School Internal;01.01.17;;S+;;;;;-;School Internal;-;-9201;-9201
+s1;EMS Planning Hourly Paid;01.03.17;EHPA;;;;;;-;EMS Planning Hourly;+;-10;-10
+SC;School internal;01.01.90;;SE;;;;;-;School;-;-7001;-7001
+SD;Stand By;01.03.19;SD01;SD;;;;;-;;+;-1;-1
+SD;;01.01.19;SD01;SD;;;;;-;;+;-1;-1
+SE;School external;01.01.90;1004;SE;;;;;-;School external;-;-7001;-7001
+sh;Shop;01.01.90;;SH;;;;;-;Shop;-;-8201;-8201
+si;School internal hourly;01.01.90;;si;;;;;-;School;-;-9101;-9101
+SI;School internal;01.01.90;1004;SI;;;;;+;School internal;-;-7001;-7001
+SM;Sales Meeting;01.01.90;;SM;;;;;-;Sales Meeting;-;-9201;-9201
+SN;School night;01.01.05;3003;SN;;;;;-;School;-;-7001;-7001
+ST;Study Time;01.01.90;;ST;;;;;-;Paid Leave;-;-9201;-9201
+SZ;SZ100% Shift 5:45;01.01.24;SZY1;;;;;;-;SZ100% Shift 5:45;+;-1;-1
+SZ;SZ50% Shift 2:52;01.01.24;SZY5;;;;;;-;SZ50% Shift 2:52;+;-1;-1
+SZ;SZ60% Shift 3:27;01.01.24;SZY6;;;;;;-;SZ60% Shift 3:27;+;-1;-1
+SZ;SZ70% Shift 4:01;01.01.24;SZY7;;;;;;-;SZ70% Shift 4:01;+;-1;-1
+SZ;SZ80% Shift 4:36;01.01.24;SZY8;;;;;;-;SZ80% Shift 4:36;+;-1;-1
+SZ;SZ90% Shift 5:10;01.01.24;SZY9;;;;;;-;SZ90% Shift 5:10;+;-1;-1
+T;T_EN;01.06.06;T100;;;;;;-;T_EN;+;-20;-20
+TD;Part Time Day;01.01.22;;TD;;;;;-;;+;-1;-1
+TI;Lugano;01.01.90;;TI;;;;;-;Outstation;-;-9101;-9101
+TO;Time out;01.12.15;;TO;;;;;-;Time-out;-;-9201;-9201
+TR;08.00 - 17.00 / SZ 8.30/0.30;01.01.90;1004;TR;;;;;-;Training (Instructin;+;-7001;-7001
+tz;;01.01.18;T099;;;;;;-;;+;-1;-1
+TZ;Part day off SM;01.01.23;;TZ;;;;;-;;+;-1;-1
+u+;UL incentive 1/10 halfday;01.06.09;;u+;;;;;-;UL incentive halfday;-;-9201;-9201
+U+;UL incentive 1/5 weekly Hrs;01.06.09;;U+;;;;;-;UL incentive;-;-9201;-9201
+uh;UBU Hourly;01.08.17;;uh;;;;;-;UBU Hourly;+;-1;-1
+UI;Unpaid Leave/Iraq-SARS crises;01.01.90;;UI;;;;;-;Unpaid Leave;-;-9201;-9201
+UL;Unpaid Leave;01.01.90;;UL;;;;;-;Unpaid Leave;-;-9201;-9201
+UM;Unpaid Baby Leave;01.01.90;;UM;;;;;-;Unpaid Baby Leave;-;-9201;-9201
+UP;Unpaid Leave (PEP);01.01.90;0099;UP;;;;;-;Unpaid Leave;-;-9201;-9201
+ux;UBU Hourly;01.08.17;;ux;;;;;-;;+;-1;-1
+UX;Unpaid Leave 1/5 weekly Hrs;01.01.90;;UX;;;;;-;Unpaid Leave;-;-9201;-9201
+V;Vacation;01.01.90;;V;;;;;-;Vacation;-;-8001;-8001
+V%;Holiday 1/5 weekly Hrs;01.11.15;;V%;;;;;-;Vacation withdraw;-;-8001;-8001
+v+;Vacation requestedVac halfday;01.06.13;;v+;;;;;-;Vacation requested;-;-8001;-8001
+V+;Vacation requested;01.01.12;;V+;;;;;-;Vacation requested;-;-8001;-8001
+V3;53 % SZ 4.30;01.01.90;0518;V;;;;;-;Vacation;-;-8001;-8001
+V5;50 % SZ 4.15;01.01.90;0501;V;;;;;-;Vacation;-;-8001;-8001
+V6;60 % SZ 5.06;01.01.90;0517;V;;;;;-;Vacation;-;-8001;-8001
+V7;70% SZ 5.57;01.01.90;0516;V;;;;;-;Vacation;-;-8001;-8001
+V8;80 % SZ 6.48;01.01.90;0519;V;;;;;-;Vacation;-;-8001;-8001
+V9;90 % SZ 7.39;01.01.90;0514;V;;;;;-;Vacation;-;-8001;-8001
+vh;Vacation halfday;01.01.90;;vh;;;;;-;Vacation;-;-8001;-8001
+VJ;Vacation Jubilee;23.03.05;;VJ;;;;;-;Vacation;-;-8001;-8001
+vx;Holiday 1/5 weekly Hrs halfday;01.01.90;;vx;;;;;-;Vacation;-;-8001;-8001
+VX;Holiday 1/5 weekly Hrs;01.01.90;;VX;;;;;-;Vacation;-;-8001;-8001
+WA;;01.07.22;;WA;;;;;-;;+;-1;-1
+X;unexpected Abs. Shorttime work;01.03.20;;X;;;;;-;unexpected Abs. Shor;+;-1;-1
+XX;Death (In-Law, b/s.,etc) 1;01.01.90;;PI;;;;;-;Paid Leave;-;-9201;-9201
+y;EMS Planning CLA 100 %;01.06.16;E100;;;;;;-;EMS Planning 100 %;+;-10;-10
+Y;EMS Planning Cadre 100 %;01.06.16;EK10;;;;;;-;EMS Planning 100 %;+;-10;-10
+Y2;EMS Planning CLA 40 %;01.06.16;EK20;;;;;;-;y4;+;-10;-10
+y3;EMS Planning CLA 40 %;01.06.16;E300;;;;;;-;y4;+;-10;-10
+y4;EMS Planning CLA 40 %;01.06.16;E400;;;;;;-;y4;+;-10;-10
+y5;EMS Planning CLA 50 %;01.06.16;E500;;;;;;-;y5;+;-10;-10
+y6;EMS Planning CLA 60 %;01.06.16;E600;;;;;;-;y6;+;-10;-10
+Y6;EMS Planning Cadre 60 %;01.06.16;EK60;;;;;;-;Y6;+;-10;-10
+y7;EMS Planning CLA 70 %;01.06.16;E700;;;;;;-;y7;+;-10;-10
+y8;EMS Planning CLA 80 %;01.06.16;E800;;;;;;-;y8;+;-10;-10
+Y8;EMS Planning Cadre 80 %;01.06.16;EK80;;;;;;-;Y6;+;-10;-10
+y9;EMS Planning CLA 90 %;01.06.16;E900;;;;;;-;y9;+;-10;-10
+y9;Full Day 90%;01.01.22;T901;;;;;;-;Full Day 90%;+;-60;-60
+y9;90% Half Day 4:12;01.01.22;T511;;;;;;-;Half Day 90%;+;-60;-60
+Ya;Cadre B-Day 100%;01.05.17;ER10;;;;;;-;EMS Planning 100 %;+;-10;-10
+ZH;Outstation;01.01.90;;ZH;;;;;-;Outstation;-;-9101;-9101
+AF;AOG on off days;01.06.21;AOG0;;;;;;-;;+;-1;-1
+AG;AOG Start;01.12.24;AOG1;;;;;;-;AOG Start;+;-1;-1
+AG;AOG End;01.12.24;AOG2;;;;;;-;AOG End;+;-1;-1
+AL;TMB PL STV Late 13:30-22:24;01.12.23;PSL;;;;;;-;TMB PL STV Late 13:3;-;-4;-4
+BH;Home Office;18.05.21;;BH;;;;;-;;-;-9101;-9101
+Ea;TMB Ea 06:15 - 15:09;18.05.21;SGe;;;;;;-;TMB Ea 06:15 - 15:09;-;-4;-4
+FT;Feiertag / Public CH;18.05.21;;FT;;;;;-;Feiertag / Public CH;-;-9101;-9101
+La;TMB La 14:00 - 22:54;18.05.21;SGl;;;;;;-;TMB La 14:00 - 22:54;-;-4;-4
+LA;TMB PL Late 13:30-22:24;18.05.21;PLl;;;;;;-;TMB PL Late 13:30-22;-;-4;-4
+LA;TMB PL Late 13:30-22:24;01.03.22;PLl;;;;;;-;TMB PL Late 13:30-22;-;-4;-4
+LA;TMB PL Lateshift 13:30-22:30;01.11.25;PLl;;;;;;-;TMB PL Lateshift 13:;-;-4;-4
+M;TMB Mid-shift 08:00 - 17:20;18.05.21;010M;;;;;;-;TMB Mid-shift 08:00;+;;
+MI;TML Mid-shift /1h break;01.01.25;013m;;;;;;-;M: Mid-shift 08:00-1;+;;
+ML;TMB midshift / 10:00-18:54;18.05.21;011m;;;;;;-;TMB midshift / 10:00;+;;
+ML;TMB Mid-Late Cadre/10:00-19:00;01.11.25;011c;;;;;;-;TMB Mid-Late Cadre/1;+;;
+O;Büro Paul;18.05.21;0161;;;;;;-;;+;;
+SP;Special Day (used for PM);18.05.21;TML1;;;;;;-;Special Day Prod. Ma;+;;
+t2;Classroom Training 2H;01.11.22;;t2;;;;;+;Classroom Training 2;+;-1;-1
+t4;Classroom Training 4H;01.11.22;;t4;;;;;+;Classroom Training 4;+;-1;-1
+td;;01.05.25;;td;;;;;-;;+;;
+++;Off Day/ Poss. Add Day;18.05.21;Z099;;;;;;-;;+;-1;-1
+Ae;TMB PL STV Early 05:45-14:39;01.12.23;PSe;;;;;;-;TMB PL STV Early 05:;-;-4;-4
+b+;Home Office;18.05.21;;b+;;;;;-;;-;-9101;-9101
+e;TMB Earlyshift PM;18.05.21;SgE;;;;;;-;TMB early PM 05:45-1;-;-4;-4
+ea;TMB ea 06:15 - 15:09;18.05.21;Sge;;;;;;-;TMB ea 06:15 - 15:09;-;-4;-4
+eA;TMB PL Early 05:45-14:39;18.05.21;PLe;;;;;;-;TMB PL Early 05:45-1;-;-4;-4
+Ea;TMB Ea 06:15 - 15:09;18.05.21;SGe;;;;;;-;TMB Ea 06:15 - 15:09;-;-4;-4
+eb;TMB ea 06:15 - 15:09 (50%);18.05.21;Se5;;;;;;-;TMB ea 06:15 - 15:09;-;-4;-4
+FT;Feiertag / Public CH;18.05.21;;FT;;;;;-;Feiertag / Public CH;-;-9101;-9101
+l;TMB lateshift PM;18.05.21;SgL;;;;;;-;TMB lateshift PM 13:;-;-4;-4
+la;TMB la 14:00 - 22:54;18.05.21;Sgl;;;;;;-;TMB la 14:00 - 22:54;-;-4;-4
+La;TMB la 14:00 - 22:54;18.05.21;SGl;;;;;;-;TMB la 14:00 - 22:54;-;-4;-4
+LA;TMB PL Late 13:30-22:24;18.05.21;PLl;;;;;;-;TMB PL Late 13:30-22;-;-4;-4
+M;TMB Mid-shift 08:00 - 17:20;18.05.21;010M;;;;;;-;TMB Mid-shift 08:00;+;;
+ML;TMB midshift / 10:00-18:54;18.05.21;011m;;;;;;-;TMB midshift / 10:00;+;;
+o;ADM Flex Early;18.05.21;0101;;;;;;-;Office 06:00 - 14:54;+;;
+O;Büro Paul;18.05.21;0161;;;;;;-;;+;;
+s+;Feiertag/Public day request;18.05.21;;s+;;;;;-;Feiertag/Public day;-;-9101;-9101
+Sn;School night;01.03.22;NTRA;TT;;;;;-;School;-;-7001;-7001
+SP;Special Day (used for PM);18.05.21;TML1;;;;;;-;Special Day Prod. Ma;+;;
+SW;Stand by weekend and BH;18.05.21;TESW;;;;;;-;Pikett A-check Team;+;;
+Z1;Zusatztag Training 8.20h;01.01.23;z101;Z1;;;;;-;Zusatztag Training 8;+;-1;-1
+Z3;TMH NS EXTRA 20.30-07*30;01.01.22;330Z;;;;;;-;TMH Z3 20.30-07*30;+;-3;-3
+ZE;TML Earlyshift EXTRA;12.05.22;131Z;ZE;;;;;-;ZE: Early Extraday;-;-2;-2
+ZL;TML Lateshift EXTRA;01.01.22;230Z;;;;;;-;ZL: Late Extraday;-;-2;-2
+ZT;;01.01.22;;ZT;;;;;-;;+;-1;-1

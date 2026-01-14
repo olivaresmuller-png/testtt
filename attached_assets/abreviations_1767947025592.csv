@@ -1,0 +1,160 @@
+﻿,,Valid,Work,Day,Special duty,,,,Block.,Generic term,,,
+Abv.,Text,from,pattern,code,Code,Start,End,Reference,A.sched.,Text,add.,Position,Position
+!,Unexp. Absence,01.01.19,,!,,,,,-,Unexpected Absence,+,-1,-1
+_,School - off,01.01.04,0099,SI,,,,,-,,+,-7001,-7001
+ab,Acc. hourly with Certificate,01.05.23,,ab,,,,,-,Acc. hourly with Cer,-,-9201,-9201
+AB,Acc. with Certificate,01.05.23,,AB,,,,,-,Acc. with Certificat,-,-9201,-9201
+ac,Accident with Cert. hourly,01.01.90,,ac,,,,,-,Accident,-,-9201,-9201
+AC,Accident with Certificate,01.01.90,,AC,,,,,-,,-,-9201,-9201
+ah,Accident  halfday,01.01.03,,ah,,,,,-,Accident halfday,-,-9201,-9201
+AP,Accident (PEP),01.01.90,0099,AP,,,,,-,Accident,-,-9201,-9201
+aw,Accident w/o Cert. hourly,01.01.90,,aw,,,,,-,Accident,-,-9201,-9201
+AW,Accident without Certificate,01.01.90,,AW,,,,,-,Accident,-,-9201,-9201
+ax,Accident  halfday (1/10),01.01.03,,ax,,,,,-,Accident halfday (1/,-,-9201,-9201
+AX,Accident w/o Cert 1/5 weekly h,01.01.90,,AX,,,,,-,Accident,-,-9201,-9201
+B+,Business Trip Request,01.01.24,,B+,,,,,-,Business Trip Reques,-,-8011,-8011
+BE,Bern,01.01.90,,BE,,,,,-,Outstation,-,-9101,-9101
+BL,Business Trip,01.05.17,,BL,,,,,-,No Pikett,-,-11,-11
+bt,Business Trip hourly,01.01.90,,bt,,,,,-,,-,,
+BT,Business Trip,01.01.90,,BT,,,,,-,Business Trip,-,-10,-10
+CX,Ang. CORONA OFF,01.03.20,,CX,,,,,-,Unexpected Absence,+,,
+ET,Educational Trip,01.01.90,,ET,,,,,-,Educational Trip,-,-9101,-9101
+f+,Komp. requested,01.06.13,,f+,,,,,-,Komp. requested,-,-8001,-8001
+F+,Flexitime,01.01.90,,F+,,,,,-,Flexitime not grante,-,-8011,-8011
+FD,Flight Duty,01.01.23,,FD,,,,,-,Flight Duty,-,-20,-20
+fl,Halfday Komp. ex Flextime,01.01.90,,fl,,,,,-,Kompensation,-,-8501,-8501
+FL,Kompensation ex Flextime,01.01.90,,FL,,,,,-,Kompensation ex Flex,-,-8011,-8011
+FO,Flight Duty on Weekends,01.01.23,,FO,,,,,-,Flight Duty on Weeke,-,-20,-20
+GA,GATA - Office Days,01.01.90,,GA,,,,,-,Paid Leave,-,-9201,-9201
+GE,Geneva,01.01.90,,GE,,,,,-,Outstation,-,-9101,-9101
+H+,Home Office (Workflow),01.01.90,,H+,,,,,-,Home Office Workflow,-,-8011,-8011
+HC,Home Office Corona,01.03.23,,HC,,,,,-,Home Office Corona,-,-8011,-8011
+hh,Home Office halfday,01.11.12,,hh,,,,,-,Home Office halfday,-,-9101,-9101
+HO,Home Office,01.11.12,,HO,,,,,-,,-,-20,-20
+I+,Home Office (Workflow),01.06.17,,I+,,,,,-,Flexitime not grante,-,-8011,-8011
+IB,Baby Leave with Certificate,01.07.09,,IB,,,,,-,Sick,-,-9201,-9201
+ic,Sick with Certificate hourly,01.01.90,,ic,,,,,+,Sick,-,-9201,-9201
+IC,Sick with Certificate,01.01.90,,IC,,,,,-,Sick with Certificat,-,-9201,-9201
+ih,Sick with Certificate halfday,01.01.90,,ih,,,,,-,Sick,-,-9201,-9201
+im,Sick halfday during pregnancy,01.07.09,,im,,,,,-,Sick,-,-9201,-9201
+IM,Baby Leave,01.01.90,,IM,,,,,-,Sick,-,-9201,-9201
+in,care of child hourly,29.04.15,,in,,,,,-,Sick,-,-9201,-9201
+IN,Nurse of close relatives,01.01.90,,IN,,,,,-,Sick,-,-9201,-9201
+IP,Sick (PEP),01.11.21,,IP,,,,,-,Sick,-,-9201,-9201
+iw,Sick w/o Certificate hourly,01.01.90,,iw,,,,,+,Sick,-,-9201,-9201
+IW,Sick without Certificate,01.01.90,,IW,,,,,-,Sick,-,-9201,-9201
+ix,Sick  halfday (1/10),01.01.09,,ix,,,,,-,Sick halfday (1/10 W,-,-9201,-9201
+IX,Sick w/o Cert. 1/5 weekly Hrs,01.01.90,,IX,,,,,-,Sick,-,-9201,-9201
+J,Joker Day,01.01.22,,J,,,,,-,,+,-1,-1
+K%,Compensation withdrawn,18.03.20,,K%,,,,,-,Compensation withdra,+,-1,-1
+k+,Komp. requested,01.06.13,,k+,,,,,-,Komp. requested,-,-8001,-8001
+K+,Compensation,01.01.12,,K+,,,,,-,Compensation not gra,-,-8001,-8001
+ka,Kurzarbeit halber Tag,23.03.20,,ka,,,,,-,Kurzarbeit halber Ta,-,-8011,-8011
+KA,Shorttime Work,23.03.20,,KA,,,,,-,Shorttime work,-,-8011,-8011
+kb,Komp. ex time bonus,01.01.90,,kb,,,,,-,Kompensation,-,-8501,-8501
+KB,Kompensation ex Timebonus,01.01.05,,KB,,,,,-,Kompensation,-,-8006,-8006
+kh,Komp. ex Overtime halfday,01.01.03,,kh,,,,,-,Kompensation halfday,-,-8501,-8501
+KH,,01.01.21,,KH,,,,,-,,+,-1,-1
+KK,Care of relatives 3d (Manager),01.01.14,,KK,,,,,-,Sick,-,-9201,-9201
+ko,Komp. ex Overtime hourly,01.01.90,,ko,,,,,-,Kompensation,-,-8501,-8501
+KO,Kompensation ex Overtime,01.01.90,,KO,,,,,-,Kompensation,-,-8011,-8011
+kx,Komp. ex Overtime 1/10 WS,01.01.90,,kx,,,,,-,Kompensation,-,-8501,-8501
+L+,Applying UBU,01.11.19,,L+,,,,,-,Applying for Unpaid,-,-8011,-8011
+M%,Military withdrawn,18.03.20,,M%,,,,,-,Military withdrawn,+,-1,-1
+M+,Military applied,01.11.19,,M+,,,,,-,Applying for Militar,-,-8011,-8011
+MC,Military with EO,01.01.90,,MC,,,,,-,Military,-,-9201,-9201
+MF,Military in France,01.01.90,,MF,,,,,-,Military,-,-9201,-9201
+MG,Military in Germany,01.01.90,,MG,,,,,-,Military,-,-9201,-9201
+MW,Military without EO,01.01.90,,MW,,,,,-,Military,-,-9201,-9201
+MX,Military 1/5 weekly Hrs,01.01.90,,MX,,,,,+,Military,-,-9201,-9201
+OA,,01.01.18,,OA,,,,,-,,+,-1,-1
+OF,Office Duty,01.01.90,,OF,,,,,-,Office Duty,-,-8001,-8001
+OG,Office Germany,01.01.18,,OG,,,,,-,Office Germany,+,-1,-1
+P%,,18.03.20,,P%,,,,,-,,+,-1,-1
+P+,Birth (2 Days),01.01.13,,P+,,,,,-,Paid Leave,-,-9201,-9201
+P1,Pit Stop P1,01.03.09,,P1,,,,,-,Pit Stop,-,-9201,-9201
+P2,Pit Stop P2,01.01.10,,P2,,,,,-,Pit Stop,-,-9201,-9201
+PB,Birth (5 Days) (wi 12M),01.01.11,,PB,,,,,-,Paid Leave,-,-9201,-9201
+PC,Wedding (Child - 1 Day),01.01.90,,PC,,,,,-,Paid Leave,-,-9201,-9201
+PD,"Death (Spouse,Child,Parents) 3",01.01.90,,PD,,,,,-,Paid Leave,-,-9201,-9201
+pe,PEKO leave hourly,01.04.04,,pe,,,,,-,Paid Leave,-,-9201,-9201
+PE,PEKO - Office Days,01.04.04,,PE,,,,,-,Paid Leave,-,-9201,-9201
+PG,"Death (In-Law,grandp.,etc) 2",01.01.90,,PG,,,,,+,"Death (In-Law,grandp",-,-9201,-9201
+ph,Paid leave halfday,01.01.03,,ph,,,,,-,Paid Leave halfday,-,-9201,-9201
+PH,Moving HB >100 km 2 Days,01.01.90,,PH,,,,,-,Paid Leave,-,-9201,-9201
+PI,"Death (In-Law, b/s.,etc) 1",01.01.90,,PI,,,,,-,Paid Leave,-,-9201,-9201
+PK,Baby Leave (Mutterschaftsurl),01.01.90,,PK,,,,,-,Paid Leave,-,-9201,-9201
+pl,Paid leave hourly,01.01.90,,pl,,,,,-,Paid Leave,-,-9201,-9201
+PL,Paid Leave,01.01.90,,PL,,,,,-,Paid Leave,-,-9201,-9201
+PM,Moving (1 Day),01.01.90,,PM,,,,,-,Paid Leave,-,-9201,-9201
+PO,Public Office,01.01.90,,PO,,,,,-,Paid Leave,-,-9201,-9201
+PP,Paid Leave (PEP),01.01.90,0099,PP,,,,,-,Paid Leave,-,-9201,-9201
+PQ,Paid Quarantine,01.08.20,,PQ,,,,,-,Paid Quarantine,-,-9201,-9201
+PR,Projects,01.01.90,,PR,,,,,-,Projects,-,-8101,-8101
+ps,Paid leave Social Plan halfd.,01.01.03,,ps,,,,,-,Paid Leave halfday,-,-9201,-9201
+PS,Pit Stop,01.01.09,,PS,,,,,-,Pit Stop,-,-9201,-9201
+pu,PEKO leave hourly,01.01.20,,pu,,,,,-,Paid Leave,-,-9201,-9201
+PU,Union work - absence,01.04.17,,PU,,,,,-,Union work - absence,+,-9202,-9202
+PV,PL Special Vulcanic,01.04.10,,PV,,,,,-,PL Special Vulcanic,-,-9201,-9201
+PW,Wedding (own - 3 Days),01.01.90,,PW,,,,,-,Paid Leave,-,-9201,-9201
+px,Paid leave halfday (1/10 WH),01.01.03,,ph,,,,,-,Paid Leave halfday (,-,-9201,-9201
+PX,Paid Leave 1/5 weekly Hrs,01.01.90,,PX,,,,,-,Paid Leave,-,-9201,-9201
+QA,Quarantäne CORONA,23.03.20,,QA,,,,,-,Quarantäne CORONA,-,,
+rh,Reduced WH (KA) 1/10 weekly Hr,01.06.09,,rh,,,,,-,Reduced WH (KA) half,-,-9201,-9201
+RH,Reduced WH (KA) 1/5 weekly Hr,01.06.09,,RH,,,,,-,Reduced WH (KA),-,-9201,-9201
+S*,School on Days off,01.01.90,,S*,,,,,-,School,-,-7001,-7001
+S+,School Internal,01.01.17,,S+,,,,,-,School Internal,-,-9201,-9201
+SC,School internal,01.01.90,,SE,,,,,-,School,-,-7001,-7001
+SD,Stand By,01.02.24,,SD,,,,,-,,+,-1,-1
+SE,School external,01.01.90,1004,SE,,,,,-,School external,-,-7001,-7001
+sh,school halfday,01.01.04,,sh,,,,,-,,-,,
+si,School internal hourly,01.01.90,,si,,,,,-,School,-,-9101,-9101
+SI,School internal,01.01.90,1004,SI,,,,,+,School internal,-,-7001,-7001
+SM,Sales Meeting,01.01.90,,SM,,,,,-,Sales Meeting,-,-9201,-9201
+SN,School night,01.01.05,3003,SN,,,,,-,School,-,-7001,-7001
+ST,Study Time,01.01.90,,ST,,,,,-,Paid Leave,-,-9201,-9201
+TD,Part Time Day,01.01.25,,TD,,,,,-,,-,-9001,-9001
+TI,Lugano,01.01.90,,TI,,,,,-,Outstation,-,-9101,-9101
+TO,Time out,01.12.15,,TO,,,,,-,Time-out,-,-9201,-9201
+TR,08.00 - 17.00 / SZ 8.30/0.30,01.01.90,1004,TR,,,,,-,Training (Instructin,+,-7001,-7001
+TZ,Part day off SM,01.01.23,,TZ,,,,,-,,+,-1,-1
+u+,UL incentive 1/10 halfday,01.06.09,,u+,,,,,-,UL incentive halfday,-,-9201,-9201
+U+,UL incentive 1/5 weekly Hrs,01.06.09,,U+,,,,,-,UL incentive,-,-9201,-9201
+uh,UBU Hourly,01.08.17,,uh,,,,,-,UBU Hourly,+,-1,-1
+UI,Unpaid Leave/Iraq-SARS crises,01.01.90,,UI,,,,,-,Unpaid Leave,-,-9201,-9201
+UL,Unpaid Leave,01.01.90,,UL,,,,,-,Unpaid Leave,-,-9201,-9201
+UM,Unpaid Baby Leave,01.01.90,,UM,,,,,-,Unpaid Baby Leave,-,-9201,-9201
+UP,Unpaid Leave (PEP),01.01.90,0099,UP,,,,,-,Unpaid Leave,-,-9201,-9201
+ux,UBU Hourly,01.08.17,,ux,,,,,-,,+,-1,-1
+UX,Unpaid Leave 1/5 weekly Hrs,01.01.90,,UX,,,,,-,Unpaid Leave,-,-9201,-9201
+V,Vacation,01.01.17,,V,,,,,+,Vacation,-,-8001,-8001
+V%,Holiday 1/5 weekly Hrs,01.11.15,,V%,,,,,-,Vacation withdraw,-,-8001,-8001
+v+,Vacation requestedVac halfday,01.06.13,,v+,,,,,-,Vacation requested,-,-8001,-8001
+V+,Vacation requested,01.01.20,,V+,,,,,-,Vacation requested,-,-8001,-8001
+V3,53 % SZ 4.30,01.01.90,0518,V,,,,,-,Vacation,-,-8001,-8001
+V5,50 % SZ 4.15,01.01.90,0501,V,,,,,-,Vacation,-,-8001,-8001
+V6,60 % SZ 5.06,01.01.90,0517,V,,,,,-,Vacation,-,-8001,-8001
+V7,70% SZ 5.57,01.01.90,0516,V,,,,,-,Vacation,-,-8001,-8001
+V8,80 % SZ 6.48,01.01.90,0519,V,,,,,-,Vacation,-,-8001,-8001
+V9,90 % SZ 7.39,01.01.90,0514,V,,,,,-,Vacation,-,-8001,-8001
+vh,Vacation halfday,01.01.90,,vh,,,,,-,Vacation,-,-8001,-8001
+VJ,Vacation Jubilee,23.03.05,,VJ,,,,,-,Vacation,-,-8001,-8001
+vx,Holiday 1/5 weekly Hrs halfday,01.01.90,,vx,,,,,-,Vacation,-,-8001,-8001
+VX,Holiday 1/5 weekly Hrs,01.01.90,,VX,,,,,-,Vacation,-,-8001,-8001
+WA,,01.07.22,,WA,,,,,-,,+,-1,-1
+X,unexpected Abs. Shorttime work,01.03.20,,X,,,,,-,unexpected Abs. Shor,+,-1,-1
+XX,"Death (In-Law, b/s.,etc) 1",01.01.90,,PI,,,,,-,Paid Leave,-,-9201,-9201
+ZH,Outstation,01.01.90,,ZH,,,,,-,Outstation,-,-9101,-9101
+BH,Home Office,18.05.21,,BH,,,,,-,,-,-9101,-9101
+FT,Feiertag / Public CH,18.05.21,,FT,,,,,-,Feiertag / Public CH,-,-9101,-9101
+t2,Classroom Training 2H,01.11.22,,t2,,,,,+,Classroom Training 2,+,-1,-1
+t4,Classroom Training 4H,01.11.22,,t4,,,,,+,Classroom Training 4,+,-1,-1
+td,,01.05.25,,td,,,,,-,,+,,
+b+,Home Office,18.05.21,,b+,,,,,-,,-,-9101,-9101
+FT,Feiertag / Public CH,18.05.21,,FT,,,,,-,Feiertag / Public CH,-,-9101,-9101
+s+,Feiertag/Public day request,18.05.21,,s+,,,,,-,Feiertag/Public day,-,-9101,-9101
+Sn,School night,01.03.22,NTRA,TT,,,,,-,School,-,-7001,-7001
+Z1,Zusatztag Training 8.20h,01.01.23,z101,Z1,,,,,-,Zusatztag Training 8,+,-1,-1
+Z3,TMH NS EXTRA 20.30-07*30,01.09.22,330Z,Z3,,,,,-,TMH Z3 20.30-07*30,+,-3,-3
+ZE,TML Earlyshift EXTRA,12.05.22,131Z,ZE,,,,,-,ZE: Early Extraday,-,-2,-2
+ZL,TML Lateshift EXTRA,01.09.22,230Z,ZL,,,,,-,ZL: Late Extraday,-,-2,-2

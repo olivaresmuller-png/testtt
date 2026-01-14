@@ -1,0 +1,144 @@
+Modify the existing application to completely remove Excel usage and instead use a fully hard-coded nomenclature list.
+
+The nomenclature list is final and will never change.
+All abbreviations and texts must be embedded directly in the code.
+
+1. FULL HARD-CODED NOMENCLATURE (AUTHORITATIVE)
+
+Implement the following object exactly as written.
+This is the single source of truth.
+
+const NOMENCLATURE = {
+  "-": "-   off day",
+  "--": "-   off day Wunsch",
+  "!": "Unexp. Absence",
+  "..": "-   off day",
+  "_": "School - off",
+  "A": "Annual Leave",
+  "AM": "Morning Leave",
+  "AR": "Arzt",
+  "AT": "Ausgleichstag",
+  "B": "Bereitschaft",
+  "BT": "Business trip",
+  "C": "Course",
+  "CT": "Comp. Time",
+  "D": "Dienstreise",
+  "EA": "Earlyshift 06.00-14.20",
+  "EB": "Earlyshift 06.00-14.20 Wunsch",
+  "ED": "Earlyshift Dienst 06.00-14.20",
+  "EH": "Earlyshift Homeoffice 06.00-14.20",
+  "EL": "Earlyshift Lehrling 06.00-14.20",
+  "EO": "Earlyshift Office 06.00-14.20",
+  "ET": "Earlyshift Training 06.00-14.20",
+  "F": "Free",
+  "F+": "Flexitime",
+  "FD": "Flight Duty",
+  "H": "Homeoffice",
+  "HO": "Holiday",
+  "I": "Illness",
+  "K": "Kompensation",
+  "KO": "Compensation",
+  "L": "Leave",
+  "LA": "Lateshift 14.00-22.30",
+  "LB": "Lateshift Wunsch 14.00-22.30",
+  "LD": "Lateshift Dienst 14.00-22.30",
+  "LH": "Lateshift Homeoffice 14.00-22.30",
+  "LO": "Lateshift Office 14.00-22.30",
+  "LT": "Lateshift Training 14.00-22.30",
+  "M": "Military",
+  "N": "Night",
+  "NI": "Nightshift 20.30-07*30",
+  "NS": "Nightshift Standby 20.30-07*30",
+  "O": "Office",
+  "OFF": "Off",
+  "P": "Paternity leave",
+  "PB": "Paternity leave",
+  "PH": "Public Holiday",
+  "R": "Relief",
+  "S": "Sick",
+  "SC": "School",
+  "T": "Training",
+  "TD": "Half day",
+  "TR": "Training 8.20h",
+  "U": "Unpaid leave",
+  "UP": "Unpaid Leave",
+  "V": "Vacation",
+  "W": "Wedding",
+  "Z1": "Zusatztag Training 8.20h",
+  "Z3": "TMH NS EXTRA 20.30-07*30",
+  "ZE": "TML Earlyshift EXTRA",
+  "ZL": "TML Lateshift EXTRA",
+  "ZT": ""
+};
+
+2. Working-Time Detection Logic
+
+A nomenclature entry is considered working time if its text contains:
+
+A time range HH.MM-HH.MM
+
+A fixed duration H.MMh
+
+All other entries are non-working and must return 0 minutes.
+
+3. Time Parsing Rules
+
+Implement time parsing with the following rules:
+
+Normalize * → .
+
+Convert times to minutes
+
+If end time < start time → shift crosses midnight (+24h)
+
+Fixed duration 8.20h = 8 hours 20 minutes
+
+4. Mandatory Break Rules (CRITICAL)
+
+After gross working time is calculated:
+
+Gross Working Time	Break
+≤ 8:00 hours	0 minutes
+> 8:00 and ≤ 9:00 hours	30 minutes
+> 9:00 hours	60 minutes
+5. Net Working Time Formula
+netMinutes = max(0, grossMinutes - breakMinutes)
+
+6. Required Output
+
+For any abbreviation, return:
+
+{
+  abbreviation: string,
+  description: string,
+  grossMinutes: number,
+  breakMinutes: number,
+  netMinutes: number,
+  netHoursDecimal: number
+}
+
+
+netHoursDecimal must be (netMinutes / 60) rounded to 2 decimals.
+
+7. Architectural Constraints
+
+No Excel, CSV, or file parsing
+
+Logic isolated from UI
+
+Cache results per abbreviation
+
+Deterministic and audit-safe
+
+Suitable for payroll and capacity calculations
+
+8. Validation (Must Match)
+Code	Text	Gross	Break	Net
+EA	06.00-14.20	8:20	0:30	7:50
+NI	20.30-07*30	11:00	1:00	10:00
+TR	8.20h	8:20	0:30	7:50
+V	Vacation	0	0	0
+OFF	Off	0	0	0
+9. Final Requirement
+
+Implement this logic cleanly and integrate it into the existing application without altering UI behavior.
